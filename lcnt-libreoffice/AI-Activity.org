@@ -1,0 +1,22 @@
+#+title: AI Agents Guidance for LCNT (Libre CoNTent) LibreOffice
+
+This file provides always-loaded orientation for Claude Code when working libreoffice
+It is shared by every lcnt-libreoffice (symlinked from the templates tree); what is specific to one
+package belongs in that package's =AI-WorkPlan.org=, =AI-DevStatus.org= and =README.org=.
+
+* Table of Contents     :TOC:
+- [[#the-common-structure][The Common Structure]]
+
+* The Common Structure
+
+#+begin_example
+<pkg>/
+  README.org                 the package description (readme-authorship)
+#+end_example
+
+Only =*.el= at the top level is part of the installed package (=package.recipe=, =:files=).
+
+
+# Local Variables:
+# eval: (setq-local toc-org-max-depth 3)
+# End:

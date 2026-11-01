@@ -1,0 +1,122 @@
+#+title: Work Plan
+#+DATE: <2026-06-10 Wed 13:54>
+#+AUTHOR: Mohsen BANAN
+#+OPTIONS: toc:4
+#+TAGS: me ai aiAndMe
+
+# Provenance (installed once by aiActivity.cs --- not regenerated):
+#   Date:      2026-10-20T04:54:02+00:00
+#   User:      bystar
+#   Templates: /bisos/apps/defaults/ai-templates
+#   Command:   /bisos/venv/py3/devbin/aiActivity.cs -i initiate --activity=aiActivity --templates=/bisos/apps/defaults/ai-templates
+
+####+BEGIN: b:ai:file/particulars
+* AI Working Context
+  Working Directory: /bisos/git/auth/bxRepos/bxexamples/aiTemplates-DE
+  File: /bisos/git/auth/bxRepos/bxexamples/aiTemplates-DE/AI-WorkPlan.org
+  Activity: aiActivity
+  Companion Docs: AI-WORKFLOW.org, AI-Activity.org, AI-DevStatus.org
+####+END:
+
+This Work Plan file drives the AI collaborative development.
+Interactions are broken down into "Stages". Each Stage has a set
+of TODOs that I work with Claude to accomplish.
+
+This repo is the *BISOS-Digital-Ecosystem-Skills* input of an assembled templates base (the engine's
+WorkPlan Stage 18): =mother/{AI-Activity.org,AI-Outputs.org,_skills/}= and the BISOS activities. Its own
+root files (this file, =CLAUDE.md=, =.claude/=, ...) are ignored by =aiActivityAssemble.cs=. The
+workflow layer, and the plan inherited from the old BISOS base, are in =aiTemplates-workFlow=.
+
+Note to a fresh Claude: read this file together with AI-WORKFLOW.org,
+AI-Activity.org and AI-DevStatus.org to orient yourself. The =<<Context Confirmation>>=
+TODO below is the standard first step, or use =/bx-confirm-root= as the automated equivalent.
+TODOs tagged =:ai:= are assigned to Claude. After completing a TODO, summarize results
+under =----- Results: ------= and mark it DONE.
+
+* Stage 0: Confirm AI's Understanding of This Repo's Context
+
+Goal: Confirm AI's understanding of the context and capture that in [[Context Confirmation]] TODO.
+
+
+* Stage 0 TODOs
+** +
+** LOOP [#A] <<Context Confirmation>> for AI (typically triggered by /bx-confirm-root) :aiAndMe:
+SCHEDULED: <2026-06-09 Tue>
+Must be repeated each time a new Claude instance is started here.
+Based on the series of files starting from CLAUDE.md in this repo,
+describe succinctly what you have understood.
+Enumerate explicitly which files you have imported and which you have considered.
+Prompt the user to confirm that the desired/appropriate model (/model) is being used for this project.
+Since this is to be repeated, leave the todo tag as LOOP.
+** -
+
+* Stage 1: This Repo as Its Own aiActivity Project
+
+Goal: give the DE layer its own plan, separate from the workflow layer's (=aiTemplates-workFlow=
+WorkPlan, Stages 2--5).
+
+* Stage 1 TODOs
+** +
+** TODO [#A] <<1.1>> Initiate this repo with =--activity=aiActivity= :aiAndMe:
+:PROPERTIES:
+:ORIGIN: Mohsen
+:IMPORTANCE: Medium
+:REPO: this
+:BASE: aiTemplates-workFlow
+:FOUND: <2026-10-20 Tue>
+:END:
+Driven from =aiTemplates-workFlow='s WorkPlan 5.1.
+----- AI Results: ------
+Done 2026-10-20 with =aiActivity.cs -i initiate --activity=aiActivity
+--templates=/bisos/apps/defaults/ai-templates=. The links are absolute into the BISOS base: this repo's
+=AI-Outputs.org= resolves through it back into this repo's =mother/AI-Outputs.org=; =AI-WORKFLOW.org=
+and =AI-Activity.org= into =aiTemplates-workFlow=; =.claude/skills= to the base's merged 22 skills.
+The assembler ignores the root files: the base
+is still =IN SYNC=. None of the old BISOS base's plan belongs here except 1.2. Not marked DONE: awaiting
+review. Nothing staged or committed.
+
+** TODO [#A] <<1.2>> Bring =bisos-core/AI-WorkPlan.org= up to the seed conventions :ai:
+:PROPERTIES:
+:ORIGIN: Mohsen
+:IMPORTANCE: Low
+:REPO: this
+:BASE: this
+:FOUND: <2026-10-20 Tue>
+:END:
+The activity seed =bisos-core/AI-WorkPlan.org= lacks what the mother seed already has (the workflow
+WorkPlan's 2.1, 2.2, 2.3 and =org-log-done=): =----- Results: ------= instead of =AI Results:=, the
+PROPERTIES drawer (=ORIGIN= ...) on its example TODO, Context Confirmation as a LOOP, and
+=org-log-done= in its local variables. Compare with =aiTemplates-workFlow/mother/AI-WorkPlan.org=.
+Also check =bisos-core/AI-DevStatus.org= and =blee-panels/AI-DevStatus.org= against the mother seed.
+----- Results: ------
+** -
+
+* Stage 2: Copy ../aiTemplates-DE to /bxRepos/bxObjects/ and move ../aiTemplates-workFlow to bxRepos/bxObjects and move ../aiActivityTemplates/ to bxRepos/bxObjects
+
+Goal: After restructuring, aiTemplates-DE, aiTemplates-workFlow and aiActivityTemplates
+are no longer examples. They don't belong in /bxRepos/bxexamples. They belong in
+/bxRepos/bxObjects/. A copy of ../aiTemplates-DE remains in /bxRepos/bxexamples.
+After the move the other two will be deleted from /bxRepos/bxexamples.
+When copying, the history of all three repos should be transfered to /bxRepos/bxObjects/
+
+* Stage 2 TODOs
+** +
+** TODO [#A] <<2.1>> Implement [[Stage 2 ]]:aiAndMe:
+:PROPERTIES:
+:ORIGIN: Mohsen
+:IMPORTANCE: Medium
+:REPO: this
+:BASE: this
+:FOUND: <2026-10-20 Tue>
+:END:
+----- Results: ------
+
+** -
+
+
+
+
+# Local Variables:
+# eval: (setq-local toc-org-max-depth 4)
+# eval: (setq-local org-log-done 'time)
+# End:

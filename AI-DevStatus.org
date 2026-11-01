@@ -1,0 +1,89 @@
+#+title: Development Status & Continuation Handoff
+#+TAGS: me ai aiAndMe
+
+# Provenance (installed once by aiActivity.cs --- not regenerated):
+#   Date:      2026-10-20T04:54:02+00:00
+#   User:      bystar
+#   Templates: /bisos/apps/defaults/ai-templates
+#   Command:   /bisos/venv/py3/devbin/aiActivity.cs -i initiate --activity=aiActivity --templates=/bisos/apps/defaults/ai-templates
+
+####+BEGIN: b:ai:file/particulars
+* AI Working Context
+  Working Directory: /bisos/git/auth/bxRepos/bxexamples/aiTemplates-DE
+  File: /bisos/git/auth/bxRepos/bxexamples/aiTemplates-DE/AI-DevStatus.org
+  Activity: aiActivity
+  Companion Docs: AI-WORKFLOW.org, AI-Activity.org, AI-DevStatus.org
+####+END:
+
+This file is a working-state handoff so development can continue on another
+machine (which has this repo but NOT the developer's =~=). It captures the
+architecture, what works, what is untested and the design decisions made so far.
+
+This file is maintained by Claude. Updates are typically triggered by the
+=/bx-status-update= slash command, after major interactions, or before a release.
+
+* Current State
+
+As of 2026-10-20: this repo is *BISOS-Digital-Ecosystem-Skills*, one of the two inputs of an assembled
+templates base (the engine =bisos-pip/aiActivity=, WorkPlan Stage 18). The other input is
+=aiTemplates-workFlow= (BISOS-AI-Workflow), which also holds the plan inherited from the old BISOS base.
+The BISOS base is =bxexamples/aiActivityTemplates=; =/bisos/apps/defaults/ai-templates= links to it.
+Since 2026-10-20 this repo is an aiActivity project itself (WorkPlan 1.1). Open: 1.2 (the
+=bisos-core= seed conventions).
+
+2026-10-27: new skill =bs-blee-emacs-server= --- Claude reaches the user's running
+Blee with =emacsclient -s <socket>= (the user gives the path from
+=(expand-file-name server-name server-socket-dir)=), reads its state freely, changes it only on
+request, and regenerates dblocks (the =F7 d d= / =F7 d b= functions, or =bx-dblock= with
+=G_emacsServerPid=) with the user's agreement --- verified on a scratch copy and on
+=blee/env3/plus/bcpg:magitPlus.el=. =dblock-authoring= now points to it instead of "Blee-only, ask
+the developer". Edited: =bisos-pip-setup-py=, =dblock-authoring=, =walkable-tree-planting=,
+=writing-cs-commands= (2026-10-26, from bisos.dockerProc / bisos.fileObj work). The base was re-assembled
+after it (=IN SYNC=, 78 links). Skill names: =bs-= prefix for skills, =bx-= for
+commands (user, 2026-10-27).
+
+2026-10-29/31 (from a blee/vscode-claude session; the record is there, its AI-WorkPlan.org 2.1):
+new activity =blee-pkg/= (its =AI-Activity.org=: what a blee-pkg is, structure, naming, bnpa,
+conventions --- one layer per CSXU, menus built once, fresh-Blee testing, the three-repo commit
+order, the README frame). New skill =blee-pkg-authorship= (the procedures). =bs-blee-emacs-server=:
+the socket's other sources (a prompt's =emacs==, =vscode.cs -i vscodePartner=), "Test in a fresh
+Blee", "Diagnose a slow Blee" (the menu-bar-update-hook finding of 2026-10-31, gcmh).
+=writing-cs-commands=: a small CSXU per layer; what the framework does not enforce (=opResults=None=,
+=argsMin=, =parChoices=, exit 0 on refusal, commands run by other programs). =readme-authorship=:
+several READMEs, one owner per table. =graphviz-authoring=: the vanishing cluster box. The base needs
+=assemblyUpdate= for the new skill.
+
+* Architecture
+
+- =mother/AI-Activity.org=, =mother/AI-Outputs.org= (a link out to the BISOS ledger in
+  =blee-binders/evolution/aiActivity-outputs/=, not under version control), =mother/_skills/= (27
+  skills). The base merges this =mother/= with the workflow input's.
+  - 2026-10-23: added 5 =lcnt-*= skills (=lcnt-build-and-release=, =lcnt-info-authoring=,
+    =lcnt-ttytex-authoring=, =lcnt-new-document=, =lcnt-multimedia=) and expanded =lcnt/AI-Activity.org=.
+- Nine activities: =astro-site=, =bisos-core=, =bisos-pip=, =blee-panels=, =graphviz-pcs=, =lcnt=,
+  =pycs=, =sbom+cap=, =xu-single=.
+- Root files (=AI-*.org=, =CLAUDE.md=, =LICENSE=, =.claude/=, =.aiActivity.cs/=): this repo's own,
+  ignored by the assembler.
+
+* What Works
+
+- After adding, renaming or deleting a file here, run
+  =aiActivityAssemble.cs -i assemblyUpdate --base=/bisos/git/bxRepos/bxexamples/aiActivityTemplates=;
+  edits to existing files are live at once. =IN SYNC= after 1.1.
+- 2026-10-23: added 5 =lcnt-*= skills (new files), then ran
+  =aiActivityAssemble.cs -i assemblyUpdate --base=/bisos/apps/defaults/ai-templates=
+  (link=5, conflict=0) --- =IN SYNC=. The =lcnt/AI-Activity.org= rewrite is an edit to an existing
+  file, so it was already live.
+
+* What Is Untested
+
+- A fresh Claude session started in this repo.
+
+* Key Design Decisions
+
+- *A fork replaces this layer* with its own ecosystem skills and activities, and adopts the workflow
+  layer as-is. Rationale: the engine =AI-DevStatus.org= and its Stage 18.
+
+# Local Variables:
+# eval: (setq-local toc-org-max-depth 4)
+# End:

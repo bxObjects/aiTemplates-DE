@@ -1,0 +1,110 @@
+#+title: AI Activity Guidance --- ByStar Generic Baseline
+#+OPTIONS: toc:4
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+It covers the generic ByStar/BISOS/Blee context that applies to all activities.
+Activity-specific guidance should be added in the sections marked below.
+
+* Table of Contents     :TOC:
+- [[#about-bystar-bisos-and-blee][About ByStar, BISOS and Blee]]
+- [[#comeega----collaborative-org-mode-enhanced-emacs-generalized-authorship][COMEEGA -- Collaborative Org-Mode Enhanced Emacs Generalized Authorship]]
+- [[#poly-dblock][poly-dblock]]
+- [[#bystar-naming-conventions][ByStar Naming Conventions]]
+- [[#cicd-rawbisos-vagrant-based-reconstruction][CI/CD: RawBisos Vagrant-Based Reconstruction]]
+- [[#repo-paths-always-via-bisosgitbxrepos][Repo Paths: Always Via =/bisos/git/bxRepos=]]
+- [[#git-commits-and-git-pushes][Git Commits and Git Pushes]]
+- [[#activity-specific-guidance][Activity-Specific Guidance]]
+
+* About ByStar, BISOS and Blee
+
+This repo is part of the Libre-Halaal ByStar Digital Ecosystem.
+
+For an overview of ByStar, BISOS and Blee, read:
+@/bisos/git/bxRepos/bisos-pip/.github/profile/readme.org
+
+For Concepts and Terminology, import:
+@/bisos/panels/bisos-core/modelAndTerminology/_nodeBase_/fullUsagePanel-en.org
+
+BISOS (ByStar Internet Services OS) is a unified framework for developing internet
+services and software-service continuums, layered on top of Debian.
+
+Blee (BISOS Libre-Halaal Emacs Environment) is the primary usage and development
+environment, fully integrated with BISOS.
+
+* COMEEGA -- Collaborative Org-Mode Enhanced Emacs Generalized Authorship
+
+All BISOS and Blee software development uses the COMEEGA syntax. Source files are
+a combination of the native programming language and org-mode.
+
+For an overview, import:
+@/bisos/git/bxRepos/blee/comeega/README.org
+
+COMEEGA makes heavy use of org-mode dynamic blocks (dblocks) which insert
+language-specific and org content into source files. Do not hand-edit content
+between =####+BEGIN:= and =####+END:= dblock markers — those are generated.
+
+* poly-dblock
+
+org-mode dynamic blocks are used heavily throughout BISOS and Blee.
+
+For an overview, import:
+@/bisos/git/bxRepos/blee/poly-dblock/README.org
+
+All dblock definitions are in =/bisos/blee/env3/dblocks/= — read them when needed.
+
+Dblocks are also used for inline unit testing: a dblock executes a bash command
+and captures its output directly in the source file. This is the primary
+verification mechanism when no separate test suite exists.
+
+* ByStar Naming Conventions
+
+ByStar uses a combination of CamelCase and Snake conventions, applied consistently
+across the digital ecosystem:
+
+- Variable, class, and function names: CamelCase
+- Concept collections: tagged with a =prefix_= (snake prefix, CamelCase body)
+- File names: follow the pattern of their type (=.cs=, =.pcs=, =.org=, etc.)
+- Always use =pathlib= for path manipulations (never =os.path=)
+- =bisos-pip= library features are preferable to other public libraries
+
+* CI/CD: RawBisos Vagrant-Based Reconstruction
+
+BISOS and Blee do not use conventional CI/CD pipelines (no GitHub Actions, Jenkins, etc.).
+
+Instead, validation is done through periodic complete VM reconstruction using Vagrant.
+This is called RawBisos reconstruction. All bisos-pip packages are exercised in that context.
+
+See: =/bisos/git/bxRepos/bxGenesis/start/README.org= and https://github.com/bxgenesis/start
+
+If the subject of this repo relates to a Capability, it will be validated through
+the Capability's Inceptor.
+
+Linting is done at release time using linters in =/bisos/pipx/bin/=
+(=pyflakes=, =flake8=, =pylint=, =pycodestyle=, =mypy=).
+
+* Repo Paths: Always Via =/bisos/git/bxRepos=
+
+Repos may be cloned under both =/bisos/git/anon/bxRepos/= (anonymous,
+read-only) and =/bisos/git/auth/bxRepos/= (authenticated, writable).
+Which of the two is authoritative on a given host is determined by the
+end of the =/bisos/git/bxRepos= symlink --- check with
+=readlink -f /bisos/git/bxRepos=. The other tree, if present, may be a
+stale clone weeks behind.
+
+- Always reference repos through =/bisos/git/bxRepos/...=, in docs,
+  code and commands. Never spell out =anon/= or =auth/=.
+- When a search (=find=, =grep -r=) lands in a path under
+  =/bisos/git/anon/= or =/bisos/git/auth/=, check it is inside the
+  =/bisos/git/bxRepos= target before reading or reporting state from it.
+
+* Git Commits and Git Pushes
+
+I don't want Claude to suggest "commit this" or "push this".
+I want to do all commits and pushes myself.
+Instead just suggest that I can commit.
+
+* Activity-Specific Guidance
+
+[Replace this section with guidance specific to this activity.
+Describe the repo's purpose, its key frameworks, commands, and conventions
+that go beyond the ByStar generic baseline above.]

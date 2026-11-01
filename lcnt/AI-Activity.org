@@ -1,0 +1,149 @@
+#+title: AI Agents Guidance for LCNT (Libre CoNtenT)
+
+This file provides guidance to Claude Code (claude.ai/code) when working in an LCNT repo.
+
+* Table of Contents     :TOC:
+- [[#what-lcnt-is][What LCNT Is]]
+- [[#the-seeded-command-architecture][The Seeded-Command Architecture]]
+- [[#the-lcnt-info-metadata-model][The LCNT-INFO Metadata Model]]
+- [[#running-latex-on-inputs--the-command-cheat-sheet][Running LaTeX on Inputs — The Command Cheat-Sheet]]
+- [[#content-types][Content Types]]
+- [[#bilingual-enfa-authoring][Bilingual (EnFa) Authoring]]
+- [[#multimedia-presentations][Multimedia Presentations]]
+- [[#authoritative-documentation][Authoritative Documentation]]
+- [[#lcnt-skills][LCNT Skills]]
+- [[#git-commits-and-git-pushes][Git Commits and Git Pushes]]
+
+* What LCNT Is
+
+ByStar LCNT (Libre CoNtenT) is a layer on top of *XeLaTeX*, *HeVeA* and *Reveal.js* for consistent
+production of PDF, HTML, Reveal, ODT and Markdown outputs from a single set of sources.
+
+The scope of content types spans: *memos*, *articles*, *books*, *presentations* (and the
+*presArt* hybrid), extended to *multimedia presentations* (narration audio, captioned video,
+=.vtt= subtitles) for recorded talks.
+
+The governing idea is *poly-existential*: one editorial source yields many artifacts — the same
+content built to different paper sizes, print agents (KDP/Ingram/local), color/B&W, and media
+(PDF/HTML/ODT). You rarely duplicate content; you add a *build spec*.
+
+Read everything under =/bisos/panels/bisos-apps/lcnt/= to understand the various aspects of LCNT;
+its =fullUsagePanel-en.org= files are the documentation of record.
+
+* The Seeded-Command Architecture
+
+Each LCNT directory has a =lcntProc.sh= that is a thin *stub* — it re-execs the shared seed:
+
+: /bisos/core/lcnt/bin/seedLcntProc.sh -l $0 "$@"
+
+The real logic lives in the seed plus the =lcnLcnt*Lib.sh= libraries in =/bisos/core/lcnt/bin/=
+(=lcnLcntBuildLib.sh=, =lcnLcntExportLib.sh=, =lcnLcntInputProc.sh= — the low-level XeLaTeX/HeVeA
+engine, =lcnLcntGens.sh= — the base generator, =lcnLcntLib.sh= — metadata utilities).
+
+The stub's own editable region holds per-project hooks only: =buildPre=, =buildPost=, =cleanPost=,
+=vis_lcnLcntInputPre= (e.g. symlinking a shared =figures/= dir). *Do not* edit the seeded dblock
+regions of the stub by hand — they are regenerated.
+
+Directory markers you will see: =_objectType_= (e.g. =bxt.lcnt.latex.pres+art.en+fa=),
+=_tree_= (=leaf=), =_treeProc_= (=lcntProc.sh=).
+
+* The LCNT-INFO Metadata Model
+
+Almost everything is metadata-driven from =./LCNT-INFO/= (flat "file-variable" files — one value
+per file):
+
+- *Document vars*: =type=, =lcntNu=, =lcntName=, =mainTitle=/=shortTitle=/=subTitle=, =author1=,
+  =contentOrigin=, =contentSrcFormat= (=ttytex=/=odp=), =docSrcForms= (e.g. =pres+art=),
+  =docSrcLangs= (e.g. =en+fa=), =articleForm= (=article=/=book=/=artBook=/=memo=/=mailing=),
+  =docSrcList=, =pubFormats=, =pubCategory=.
+- =LCNT-INFO/Builds/<spec>/= — per-build: =buildName=, =buildDocClass=, =docSrc=, =paperSize=,
+  =results=, =sides=. =Builds/enabledList= defines what the target =all= expands to.
+- =LCNT-INFO/Exports/<spec>/= — destinations (=bxGithub=, =webApache=, =ploneProc=, …).
+- =curBuild= → =./LCNT-INFO/Builds/<spec>= and =curExport= → =./LCNT-INFO/Exports/<spec>= are
+  symlinks selecting the *active* spec (what the target =cur= refers to).
+- Outputs land in =Results/=, then versioned into =Release/<ver>/= (filenames like
+  =c-<lcntNu>-<ver>-<name>-<buildName>.pdf=).
+
+Before building, inspect current state: =cat _objectType_=, =ls LCNT-INFO/Builds=,
+=cat LCNT-INFO/Builds/enabledList=, and =ls -l curBuild curExport=.
+
+* Running LaTeX on Inputs — The Command Cheat-Sheet
+
+After edits to the =.ttytex= / =.tex= sources, build the current spec (this also runs the dblock
+metadata-injection pass):
+
+: lcntProc.sh -h -v -n showRun -p pre="clean" -p extent="build" -i lcntBuild cur
+
+Invocation shape: =lcntProc.sh [-h -v -n showRun] -p <par>=<val> -i <verb> <target>=
+
+- =-i <verb>=: =lcntBuild=, =lcntExport=, =fullBuild=, =fullClean=, =fullRefresh=,
+  =dblockUpdateFile <file>=, =resultsRelease=, =mmUniteStart=, =dirsRecurse <verb>=.
+- =-p extent==: composable — =build=, =view=, =release= (e.g. =build+view=, =build+view+release=).
+- =-p pre="clean"=: run a full clean first.
+- =<target>=: =cur= (the =curBuild= symlink) | =all= (the =enabledList=) | =dev= (no dblock) |
+  an explicit =./LCNT-INFO/Builds/<spec>=.
+
+Common forms:
+
+: lcntProc.sh -p extent="build+view" -i lcntBuild cur          # build active spec, open viewer
+: lcntProc.sh -p extent="build+view" -i lcntBuild all          # build everything in enabledList
+: lcntProc.sh -i dblockUpdateFile presentationEnFa.ttytex      # re-inject metadata only
+: lcntProc.sh -i lcntExport all                                # publish to enabled Exports
+
+* Content Types
+
+The content type is largely a *build decision* over shared bodies, not a separate source:
+
+| Type         | Typical source            | buildDocClass | Notes                                      |
+|--------------+---------------------------+---------------+--------------------------------------------|
+| memo         | =memoEnFa.ttytex=         | memo          | single PDF                                 |
+| article      | =articleEnFa.ttytex=      | art           | paper sizes 8.5x11/a4/6x9; PDF+HTML         |
+| book         | =articleEnFa.ttytex=      | book          | adds =bookCover=/=frontCover=/=backCover=; parts→chapters; print SKUs (ISBN, color/BW) |
+| presentation | =presentationEnFa.ttytex= | (beamer)      | PDF (beamer) + Reveal.js HTML              |
+| presArt      | =presArtEnFa.ttytex=      | presArt       | combined presentation+article              |
+
+Bodies (=body*EnFa.tex=) are shared across forms; the =.ttytex= wrappers select document class and
+conditionals.
+
+* Bilingual (EnFa) Authoring
+
+=EnFa= = bilingual English+Farsi. Language and edition are selected by LaTeX comment-conditionals in
+the =.ttytex=/=.tex=, e.g. =\includecomment{whenDocDirectionLtr}= /
+=\excludecomment{whenDocDirectionRtl}=, =\includecomment{whenIsBook}= /
+=\excludecomment{whenIsArticle}=, =\includecomment{whenUsEdition}= /
+=\excludecomment{whenIntEdition}=. Keep shared prose in the =body*.tex= and switch per
+variant via these comments rather than forking files.
+
+* Multimedia Presentations
+
+For recorded-talk projects, =Panel.org= exposes an *MmUnite* flow (=lcntProc.sh -i mmUniteStart=,
+=mmUnite.sh=, per-area =audio/= and =video/= panels). Narration/caption =.vtt= subtitles are
+generated by syncing a =.narration= text to the media with *aeneas*. Audio sections are kept as
+=.wav=/=.mp3= with =.length= markers; video assembly/captioning is driven by =mmUniteVideo.sh=.
+
+* Authoritative Documentation
+
+The LCNT documentation of record is the Blee panel tree under =/bisos/panels/bisos-apps/lcnt/=,
+notably:
+- =_nodeBase_/fullUsagePanel-en.org= — overview.
+- =lcntModel/= — the conceptual model and the LCNT-INFO file-variable definitions.
+- =lcntFoundations/= — one-time host/BPO setup (=bisosLcntSetup.sh=, =bpoLcntManage.sh=).
+- =lcntArtTypes/{articles,books,memos}/= — per-type specifics.
+
+These panels are outside the CLAUDE.md import chain — consult them directly when a detail here is
+insufficient.
+
+* LCNT Skills
+
+When a task matches one of these, use the corresponding skill:
+- =lcnt-build-and-release= — the build / view / release / export loop.
+- =lcnt-info-authoring= — create/modify =LCNT-INFO/= (file-vars, Builds, Exports, enabledList, curBuild).
+- =lcnt-ttytex-authoring= — editing =.ttytex=/=body*.tex= (builds on =dblock-authoring= and =comeega-authorship=).
+- =lcnt-new-document= — bootstrap a new LCNT base with =lcnLcntGens.sh=.
+- =lcnt-multimedia= — MmUnite audio/video and aeneas =.vtt= subtitle sync.
+
+* Git Commits and Git Pushes
+
+I don't want Claude to suggest the prompt of "commit this" or "push this".
+I want to do all the commits and pushes myself.
+Instead just suggest that I can commit.

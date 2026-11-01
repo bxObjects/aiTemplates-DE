@@ -1,0 +1,116 @@
+#+title: AI Agents Guidance for bisos.newPkg
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+* Table of Contents     :TOC:
+- [[#general-this-repo-is-part-of-bisos-pip----common-structure-of-repos-in-the-bisos-pip-organization][General: This Repo is Part of bisos-pip -- Common Structure of Repos in the bisos-pip Organization]]
+- [[#general-python-programming-and-testing][General: Python Programming and Testing]]
+- [[#repo-paths-always-via-bisosgitbxrepos][Repo Paths: Always Via =/bisos/git/bxRepos=]]
+- [[#git-commits-and-git-pushes][Git Commits and Git Pushes]]
+- [[#general-this-repo-is-layered-on-top-of-pycs-framework-bisosb-and-bisospycs][General: This Repo is Layered on Top of PyCS-Framework (bisos.b and bisos.pycs)]]
+- [[#general-commands][General: Commands]]
+- [[#general-writing-cs-commands][General: Writing CS commands]]
+
+* General: This Repo is Part of bisos-pip -- Common Structure of Repos in the bisos-pip Organization
+
+See
+
+@/bisos/git/bxRepos/bisos-pip/.github/profile/readme.org
+
+* General: Python Programming and Testing
+
+For any new project or module or file, use type hinting.
+For exisiting code, if type hinting is not used, don't add any hints.
+
+This  project does not have a CI/CD or liniting tools.
+
+See Specific for smoke tests.
+
+* Repo Paths: Always Via =/bisos/git/bxRepos=
+
+Repos may be cloned under both =/bisos/git/anon/bxRepos/= (anonymous,
+read-only) and =/bisos/git/auth/bxRepos/= (authenticated, writable).
+Which of the two is authoritative on a given host is determined by the
+end of the =/bisos/git/bxRepos= symlink --- check with
+=readlink -f /bisos/git/bxRepos=. The other tree, if present, may be a
+stale clone weeks behind.
+
+- Always reference repos through =/bisos/git/bxRepos/...=, in docs,
+  code and commands. Never spell out =anon/= or =auth/=.
+- When a search (=find=, =grep -r=) lands in a path under
+  =/bisos/git/anon/= or =/bisos/git/auth/=, check it is inside the
+  =/bisos/git/bxRepos= target before reading or reporting state from it.
+
+* Git Commits and Git Pushes
+
+I don't want Claude to suggest the prompt of "commit this" or "push this".
+I want to do all the commits and pushes myself.
+Instead just suggest that I can commit.
+
+* General: This Repo is Layered on Top of PyCS-Framework (bisos.b and bisos.pycs)
+
+PyCS-Framework is documented in:
+
+@/bisos/panels/bisos-core/PyCsFwrk/_nodeBase_/fullUsagePanel-en.org
+--- the framework's own usage panel; read for the semantics of =cs.Cmnd=,
+=g_csMain=, =cs.examples.*=, parameter / argument specs, and RO (remote
+operations).
+
+The PyCS-Framework package is at: /bisos/git/bxRepos/bisos-pip/pycs
+--- the framework source (=bisos.csPlayer= and related); consult when you need
+how the CS player, =csuList= imports, or seeding hooks actually work.
+
+PyCS-Framework augments the bisos.b package which is at /bisos/git/bxRepos/bisos-pip/b
+--- =bisos.b= provides the =cs=, =b_io=, and =b.op= APIs this repo imports.
+Its Blee-Panel is @/bisos/git/bxRepos/bisos-pip/b/py3/panels/bisos.b/_nodeBase_/fullUsagePanel-en.org
+
+When descending into either repo, follow its own (if present)
+the same way this file points up to the org-wide readme.
+
+* General: Commands
+
+All commands assume you are in =py3/=. For build, install, and publish, see
+*bisos-pip Build System* above.
+
+- *Lint / type-check* (paths from the in-file "Workbench" headers): the venv
+  interpreter is =/bisos/venv/py3/bisos3/bin/python=; linters live in
+  =/bisos/pipx/bin/= (=pyflakes=, =flake8=, =pylint=, =pycodestyle=). =mypy= is
+  used (a =.mypy_cache/= for py3.11 is present).
+- *Smoke test* (no test suite exists): run a seed's example menu, e.g.
+  =bin/addCmnds-helloWorld.pcs= (prints the example menu) or
+  =bin/addCmnds-helloWorld.pcs -i helloWorld= (runs the =helloWorld= command).
+
+There is no unit-test framework in this repo. Verification is done by running
+the =.cs=/=.pcs= executables and inspecting their output --- the expected output
+is captured inline in each command via =self.captureRunStr(...)=.
+
+Some execution examples are at:
+@/bisos/git/bxRepos/bisos-pip/gitist/py3/panels/bisos.gitist/_nodeBase_/fullUsagePanel-en.org
+
+* General: Writing CS commands
+
+Commands are classes subclassing =cs.Cmnd= (from =bisos.b import cs=). Each
+declares =cmndParamsMandatory=, =cmndParamsOptional=, =cmndArgsLen=, and a
+=cmnd()= method that does the work. The gitist commands live in
+=py3/bisos/gitist/gitist_csu.py= --- read =whichReactFramework= and
+=placeHolder= there as templates.
+
+The class header (the =class <Name>(cs.Cmnd):= line and the =cmnd()= signature)
+is generated from a =####+BEGIN: b:py3:cs:cmnd/classHead ...= dblock --- do not
+hand-edit between the =BEGIN=/=END= markers. Author only the body *after* the
+=####+END:= marker:
+
+- =cmndParamsMandatory= / =cmndParamsOptional= :: lists of parameter names the
+  command accepts (declared on the =classHead= dblock as =:parsMand= / =:parsOpt=).
+- =cmndArgsLen= :: =({'Min': N, 'Max': M})= positional-argument bounds. When the
+  command takes args, also define a =cmndArgsSpec()= method (its own
+  =b:py3:cs:method/args= dblock) using =cs.CmndArgsSpecDict().argsDictAdd(...)=,
+  and read them in =cmnd()= with =self.cmndArgsGet(...)=.
+- =cmnd(self, rtInv, cmndOutcome, ...)= :: the implementation. Start by calling
+  =self.cmndDocStr(...)= for the org description, optionally
+  =self.captureRunStr(...)= to capture expected example output (this *is* the
+  test --- see *Commands* above), do the work, and return
+  =cmndOutcome.set(opError=b.OpError.Success, opResults=...)=.
+
+Register the command in the seed's example menu (=examples_csu= /
+=examples_seed= in the same file) so it shows up in the plant's example output.

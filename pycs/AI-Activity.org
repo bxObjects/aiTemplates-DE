@@ -1,0 +1,191 @@
+#+title: AI Agents Guidance for bisos-pip PyCS Packages
+
+This file provides always-loaded orientation for Claude Code when working in a
+bisos-pip, bisos-core and other related repos. Task-specific procedural
+knowledge (how to write a CS command, how to author a Blee panel, how to release
+to PyPI, etc.) lives in skills under =.claude/skills/= — Claude loads those on
+demand when the current task calls for them. See the "Available Skills" section
+below.
+
+* Table of Contents     :TOC:
+- [[#about-bisos-blee-and-bystar][About BISOS, Blee and ByStar]]
+- [[#about-pycs-framework-python-command-services][About PyCS Framework (Python Command-Services)]]
+- [[#programming-conventions][Programming Conventions]]
+- [[#python-library-preferences][Python Library Preferences]]
+- [[#python-typing-hints][Python Typing Hints]]
+- [[#no-multi-platform-compatibility][No Multi-Platform Compatibility]]
+- [[#repo-paths-always-via-bisosgitbxrepos][Repo Paths: Always Via =/bisos/git/bxRepos=]]
+- [[#git-commits-and-git-pushes][Git Commits and Git Pushes]]
+- [[#bisos-pip-packages-are-local-pip-installed][bisos-pip Packages Are Local pip-Installed]]
+- [[#this-repo-is-layered-on-top-of-pycs-framework][This Repo is Layered on Top of PyCS-Framework]]
+- [[#documentation-hierarchy][Documentation Hierarchy]]
+- [[#available-skills][Available Skills]]
+- [[#reference-panels][Reference Panels]]
+
+* About BISOS, Blee and ByStar
+
+ByStar (By*) is a Libre-Halaal digital ecosystem — a non-proprietary
+autonomy-oriented complete digital ecosystem.
+
+BISOS (ByStar Internet Services Operating System) is the technical
+foundation of ByStar. It's a layer on top of Debian that unifies
+service-side and usage-side software into a single "software-service
+continuum." Its basic unit is a *site* (private git server + registrar),
+and its core abstractions are BPOs (portable git-based packages of
+data/config/software) and PALS (Possession-Assertable Libre Services).
+
+Blee (BISOS Libre-Halaal Emacs Environment) is the primary usage and
+development environment for BISOS — a heavily-integrated Emacs layer.
+Blee and BISOS are intertwined.
+
+For concepts and terminology, import:
+@/bisos/panels/bisos-core/modelAndTerminology/_nodeBase_/fullUsagePanel-en.org
+
+* About PyCS Framework (Python Command-Services)
+
+PyCS Framework is a set of Python Libraries that collectively provide for
+development of consistent commands and services in a unified manner.
+
+* Programming Conventions
+
+Digital-ecosystem-wide programming conventions apply, not language-specific ones:
+
+- Variable, class, and function names: CamelCase
+- Concept collections: tagged with =prefix_= (snake prefix, CamelCase body)
+
+* Python Library Preferences
+
+- Prefer =bisos-pip= library features over other public libraries.
+- Always use =pathlib= for path manipulations (never =os.path=).
+
+* Python Typing Hints
+
+Use Python type hints in all PyCS and BISOS modules. For external modules
+that have not been using type hints, do not add them.
+
+Linting is done at release time. See the =bisos-pip-release= skill.
+
+* No Multi-Platform Compatibility
+
+Only one of the two latest Debian releases is supported. Windows
+compatibility is never required. Backward compatibility is limited to the
+two latest releases.
+
+* Repo Paths: Always Via =/bisos/git/bxRepos=
+
+Repos may be cloned under both =/bisos/git/anon/bxRepos/= (anonymous,
+read-only) and =/bisos/git/auth/bxRepos/= (authenticated, writable).
+Which of the two is authoritative on a given host is determined by the
+end of the =/bisos/git/bxRepos= symlink --- check with
+=readlink -f /bisos/git/bxRepos=. The other tree, if present, may be a
+stale clone weeks behind.
+
+- Always reference repos through =/bisos/git/bxRepos/...=, in docs,
+  code and commands. Never spell out =anon/= or =auth/=.
+- When a search (=find=, =grep -r=) lands in a path under
+  =/bisos/git/anon/= or =/bisos/git/auth/=, check it is inside the
+  =/bisos/git/bxRepos= target before reading or reporting state from it.
+
+* Git Commits and Git Pushes
+
+Do NOT suggest "commit this" or "push this". The developer performs all
+commits and pushes. Instead, when work is complete, say something like:
+"You can commit when ready."
+
+* bisos-pip Packages Are Local pip-Installed
+
+All bisos-pip packages (including =bisos.b=) are installed via
+=pip install -e= (editable/development mode) from their source repos under
+=/bisos/git/bxRepos/bisos-pip/=. The venv at =/bisos/venv/py3/bisos3/=
+picks up packages directly from the source tree.
+
+*Do NOT edit files under* =/bisos/venv/py3/bisos3/lib/python3.11/site-packages/=.
+Always edit the corresponding source repo:
+
+| Package    | Source repo                                         |
+|------------+-----------------------------------------------------|
+| bisos.b    | /bisos/git/bxRepos/bisos-pip/b/py3/bisos/b/         |
+| bisos.pycs | /bisos/git/bxRepos/bisos-pip/pycs/                  |
+
+If the package is installed non-editable and the site-packages copy does
+not reflect source changes, reinstall editable:
+
+: pip install -e /bisos/git/bxRepos/bisos-pip/b/py3
+
+* This Repo is Layered on Top of PyCS-Framework
+
+- =bisos.b= — PyCS-Core. Provides =cs=, =b_io=, =fp=, =b.op= APIs.
+  Source: =/bisos/git/bxRepos/bisos-pip/b=
+  Panel: @/bisos/git/bxRepos/bisos-pip/b/py3/panels/bisos.b/_nodeBase_/fullUsagePanel-en.org
+- =bisos.pycs= — PyCS-Foundation. Framework source (=bisos.csPlayer= etc.).
+  Source: =/bisos/git/bxRepos/bisos-pip/pycs=
+- PyCS-Framework panel: @/bisos/panels/bisos-core/PyCsFwrk/_nodeBase_/fullUsagePanel-en.org
+
+When descending into either repo, follow its own if present.
+
+* Documentation Hierarchy
+
+During AI-Activity, Claude maintains and updates relevant documentation
+at multiple levels:
+
+- =AI-WorkPlan.org= — most immediate; ephemeral, will be org-archived
+- =AI-DevStatus.org= — dev-state handoff between sessions/machines
+- =README.org= (directory or repo) — human-oriented
+- Blee-Panels (=py3/panels/.../fullUsagePanel-en.org=) — most permanent
+
+Update Blee-Panels of bisos-pip and blee packages *first*; point to those
+from =/bisos/panels= afterwards.
+
+*Important — =README.rst= is generated, not authored.* Every bisos-pip
+package has =README.org= (source, at repo root) and =py3/README.rst= (PyPI
+form). =README.rst= is regenerated from =README.org= by
+=py3/pypiProc.sh -i fullPrep= (and by =fullPrepBuild forPypi= which calls
+it). *Never hand-edit =README.rst=* — edits will be silently overwritten
+at release time. If you need to update the README, edit =README.org= and
+let =pypiProc.sh= regenerate the RST when releasing. Between releases,
+=README.rst= being stale relative to =README.org= is expected and
+harmless.
+
+An overview of Blee Panels:
+@/bisos/panels/blee-core/blee-panels/_nodeBase_/fullUsagePanel-en.org
+
+* Available Skills
+
+All BISOS skills come from one shared set, =mother/_skills/= (19 today), so every
+activity sees all of them; the table names the ones this activity uses most. The full
+list is that directory.
+
+The following skills are installed under =.claude/skills/= and loaded by
+Claude on demand when the current task matches:
+
+| Skill                   | Trigger — when Claude loads it                              |
+|-------------------------+-------------------------------------------------------------|
+| =writing-cs-commands=   | Writing or modifying a =cs.Cmnd= subclass (=.cs= / =_csu.py=) |
+| =dblock-authoring=      | Working with poly-dblock =####+BEGIN:= blocks, csuListProc, or dblock-based unit tests |
+| =readme-authorship=     | Writing or updating =README.org= (repo root — the ONLY authored README; =py3/README.rst= is *generated* by =pypiProc.sh -i fullPrep= and must never be hand-edited) |
+| =blee-panel-authorship= | Writing or updating =py3/panels/.../fullUsagePanel-en.org=  |
+| =bisos-pip-release=     | Preparing a PyPI release: linting, packaging, upload        |
+
+Skills also work as human-readable documentation — the =SKILL.md= inside
+each folder describes when and how to do that specific kind of work.
+
+* Reference Panels
+
+Reference panels for deeper context, imported on demand:
+
+- PyCS-Framework layerings — @/bisos/panels/bisos-core/PyCsFwrk/pycsFwrkLayerings/_nodeBase_/fullUsagePanel-en.org
+- Here-BISOS platform layerings — see =/lcnt/lgpc/bystar/permanent/common/figures/hereBisosPycs.pdf=
+- Site-BISOS platform layerings — see =/lcnt/lgpc/bystar/permanent/common/figures/siteBisosPycs.pdf=
+- PyCS as universal substrate — see =/lcnt/lgpc/bystar/permanent/common/figures/bystarOverPycsSubstrate.pdf=
+- Adopted packages of PyCS-Framework — @/bisos/panels/bisos-core/PyCsFwrk/pyAdoptedPkgs/_nodeBase_/fullUsagePanel-en.org
+- PyCS Players (Web-UI, Blee) — @/bisos/panels/bisos-core/PyCsFwrk/csPlayers/_nodeBase_/fullUsagePanel-en.org
+- List of bisos-pip packages and status — @/bisos/panels/bisos-core/bisos-pip/_nodeBase_/fullUsagePanel-en.org
+- bisos-pip packaging machinery — @/bisos/panels/bisos-core/PyCsFwrk/bisos-pip-packaging/_nodeBase_/fullUsagePanel-en.org
+- COMEEGA — @/bisos/git/bxRepos/blee/comeega/README.org
+- poly-dblock — @/bisos/git/bxRepos/blee/poly-dblock/README.org
+- Comprehensive bisos-pip README — @/bisos/git/bxRepos/bisos-pip/_github/profile/readme.org
+
+CI/CD is via *RawBisos Vagrant-based reconstruction*, not conventional
+pipelines. All bisos-pip packages are exercised in that context.
+See @/bisos/git/bxRepos/bxGenesis/start/README.org and
+https://github.com/bxgenesis/start.

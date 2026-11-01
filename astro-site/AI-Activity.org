@@ -1,0 +1,217 @@
+#+title: AI Agents Guidance for BISOS Static Sites With Astro (astro-site)
+
+This file provides always-loaded orientation for Claude Code when working on a BISOS static site: pages
+from a content tree on the file system, built by Astro into static HTML that nginx serves as
+=http://<name>.here=, packaged as a BISOS capability (CBS/CBM). Creating such a site step by step is the
+=astro-site-authorship= skill. See "Available Skills" below.
+
+* Table of Contents     :TOC:
+- [[#what-a-bisos-static-site-is][What a BISOS Static Site Is]]
+- [[#the-common-structure][The Common Structure]]
+- [[#the-content-tree][The Content Tree]]
+- [[#astroproc-and-contenttree-in-bisoswebcap][astroProc and contentTree in bisos.webCap]]
+- [[#react-applications-as-islands][React Applications as Islands]]
+- [[#a-site-is-a-capability][A Site Is a Capability]]
+- [[#content-from-scripts-built-as-a-snapshot][Content From Scripts, Built as a Snapshot]]
+- [[#conventions][Conventions]]
+- [[#pitfalls-already-found][Pitfalls Already Found]]
+- [[#history-plone-3-gatsby-astro][History: Plone 3, Gatsby, Astro]]
+- [[#available-skills][Available Skills]]
+
+* What a BISOS Static Site Is
+
+Astro 7 (pinned per site by =site/package-lock.json=) renders every page at build time; no React and no
+client-side JavaScript unless a site adds an island. Bodies are HTML, or LaTeX converted by HeVeA, so the
+same LaTeX source (LCNT) gives the web page, its PDF and its Reveal slides. Right-to-left languages
+(Persian, Arabic, Hebrew) are a requirement and are supported throughout.
+
+| Site                  | Where                                          | What it shows             |
+|-----------------------+------------------------------------------------+---------------------------|
+| astroStarter.here     | =bisos-web/astro-starter-bystar= (the starter) | its tree, the model       |
+| platform.here         | =/bisos/platform/web/astro= (in bro_rawBisos)  | layers, capabilities      |
+| csPlayerUi.here       | =bisos-web/csPlayer-webUi= (repo name differs) | a React island, link tabs |
+| libre-halaal.org.here | =bro_rawBisosPals=, =bySmb/.../web/astro=      | the first PALS site       |
+
+*Start from =astro-starter-bystar=* (copy it); platform.here is the example of data-driven pages. A
+site's name and its repo's name may differ: the fqdn is in =astroProc.spcs= (and, for a PALS, in
+=uri/here/value=), not in the path.
+
+* The Common Structure
+
+#+begin_example
+<siteBase>/
+  README.org, AI-*.org, CLAUDE.md   the site, and its AI collaboration
+  astroProc.spcs                    the site's process (bisos.webCap's astroProc seed)
+  cbm/                              the capability: <name>-cbs.pcs, -assemble.cs, -wvd.pcs, -here-dns.pcs
+  content/tree/                     the content tree: the site's pages (engine-neutral)
+  content/bin/                      site-specific content scripts, writing content/data/<x>.json
+  content/siteStyle/                optional logo.html
+  site/                             the Astro site: package*.json, astro.config.mjs, src/
+#+end_example
+
+=site/node_modules/=, =site/dist/=, =site/.astro/=, =site/public/= (placed by =files= nodes) and
+=content/data/*= are not under git.
+
+* The Content Tree
+
+The model of the ByStar Plone 3 ContentTree, carried over so the Plone 3 sites move nearly unchanged
+(=contentTreePloneImport=). A node is a directory with =_tree_= (node or leaf); its parameters are one
+file each:
+
+| =objectType=         | =folder= (its page is its =index_html/= leaf), =page=, =pageLcnt=      |
+|                      | (body from =webPageLcnt/bodyWebPage.tex= by HeVeA), =files=            |
+|                      | (=filesList= at =siteFolder=), =custom=, =app= (a tab whose page is a  |
+|                      | fixed page, e.g. a React island); the old slider's =auxNode=,          |
+|                      | =auxLeaf=, =rawFiles= are skipped                                      |
+|                      | =link=: a tab leading out to =linkUrl= (another site), in a new tab    |
+| =folderTitle=        | a folder's label in the tabs and the left tree                         |
+| =pageTitle=          | a page's heading; =pageDescription= its summary                        |
+| =pubState=           | =publish=: built; else left out                                        |
+| =excludeFromNav=     | =true=: built, not in the navigation                                   |
+| =layoutLeftPortlets= | a page's left tree: =none=, =all=; else when its section has sub-pages |
+| body                 | =contentBody.html=, else =content.html=, else =contentPreface.html=    |
+| =nodesOrdered=       | a folder's children in navigation order (was in each =plone3Proc.sh=)  |
+| =contentLang=        | inherited; =fa=, =ar=, =he=, =ur= are right-to-left                    |
+| root only            | =defaultPage= (served at =/=), =siteTitle=, =siteTagline=              |
+
+The navigation is the tree: top-level folders are the tabs and a section's subtree is the left tree, as
+narrow as its longest entry (=fit-content(18%)=); a section that is a single page is full width; no
+breadcrumbs (decided 2026-10-18); a Site Map (=/sitemap/=, from the tree) among the header's site
+actions, as in the Plone 3 sites. The tab bar does not mirror: left-to-right sections at the left,
+right-to-left ones at the far right, on every page. No per-node processors (the Plone 3 trees had one
+in every node).
+
+* astroProc and contentTree in bisos.webCap
+
+Decided 2026-10-18 (user): static-site processing lives in =bisos.webCap=, beside =reactProc= and
+=djangoProc=, named for the tool (the data is neutral; processing may be tool-specific).
+
+- =contentTree_csu= --- engine-neutral: =readTree=, =validate=, =lcntBodies= (HeVeA with the bxtex macros
+  and an RTL, no-footer =.hva=), =filesPlace=, =ploneImport=; Cmnds =contentTreeList=,
+  =contentTreeValidate=, =contentTreeLcntBodies=, =contentTreeFilesPlace=, =contentTreePloneImport=.
+- =astroProc_csu= --- Astro-specific: =contentBuild= (tree bodies, files, then every executable in
+  =content/bin/=), =siteBuild= (contentBuild, =npm ci=, =npx astro build=), =siteVerify= (200s and a 404
+  over HTTP), =siteInfo=. It works from =siteBase= (the planted file's directory), never the current
+  directory.
+- =astroProc_seedInfo.setup(fqdn=..., devPortNu=...)= in the planted =astroProc.spcs=; a planted
+  =examples_csu()= adds the site's own chapter after the seed's.
+- =site/src/lib/contentTree.mjs= in each site reads the tree by the same rules; keep the two in step.
+
+* React Applications as Islands
+
+A React application joins a site as an Astro island, not an iframe: same page, same origin, under the
+site's tabs (decided 2026-10-18; csPlayer-webUi's webCliGui is the first, =bisos-web/csPlayer-webUi=).
+An =app= node gives the tab; =site/src/pages/<path>.astro= renders =<App client:only="react" />= in the
+tree's layout. What the integration needed, each solved on the site's side, the application unchanged:
+
+- =@astrojs/react=; the application linked in (=file:= while it is developed alongside), its path
+  aliases in =astro.config.mjs=, =resolve.preserveSymlinks= (its imports resolve from the site) and
+  =resolve.dedupe= (one React).
+- Tailwind v4 skips =node_modules=: a site-side stylesheet imports the application's CSS and adds
+  =@source= for its source.
+- Image imports: webpack gave a URL string, Astro gives an image object (=src="[object Object]"=); an
+  alias adding =?url= restores the string.
+- Its global CSS (Bootstrap) loads only on its page; the site's chrome is styled by class so it cannot be
+  restyled.
+- Shared state (csPlayer-webUi's =csPlayerContext.ts=): one small store in =localStorage=, shown in the
+  header by plain script on every page, read by islands with =useSyncExternalStore=.
+- Tailwind for site-written islands: theme and utilities without preflight, and the utilities *not* in a
+  cascade layer (a layered rule loses to any unlayered site rule, e.g. =pre { background }=).
+- Islands talk through shared modules (a store) on a page and persisted state across pages; an
+  application written for an iframe (=window.parent.postMessage=) posts to its own window, where a
+  listener picks it up.
+- Headless Chrome screenshots of pages with transitions: =--run-all-compositor-stages-before-draw
+  --virtual-time-budget=20000=, or a fade is caught half way.
+
+* A Site Is a Capability
+
+*First decide which kind of site it is* --- the two are named, served and planted differently:
+
+- *banna*: a slot in =tcpPorts.py= (=127.0.22.x=) and a =<name>_dev= pair (24xxx / 25xxx); per-site
+  =cbm/<name>-cbs.pcs=, =-assemble.cs=, =-wvd.pcs=, =-here-dns.pcs=; leaf
+  =sys/cbm/collective/hereWeb/<name>/=, planted by hand.
+- *PALS*: the name in =uri/here/value=; a =127.0.55.x= address assigned once by bisos.pals's =palsHere=
+  (=/bisos/var/palsHere/uri.list=, the =palsHere= dblock of =/etc/hosts=); no banna, no dev port;
+  =cbm/= is only four symlinks to bisos.pals's generic =pals-*= files; leaf
+  =sys/cbm/pals/<palsBxo>/<cbmName>/=, planted by =palsOfSys.cs=.
+
+A directory with =uri/here/value=, or a =cbm/= of =pals-*= symlinks, is a PALS: platform services
+(Airflow, Grafana, the starter) are banna; a site owned by someone (a foundation, a
+project) is a PALS. Do not add a PALS to banna. The procedure for a PALS is the =bx-pals-web-site=
+skill; the rest of this section describes the banna kind.
+
+- *CBS* (=cbm/<name>-cbs.pcs=): =cba_seed.setup(sbom=None, assemble=<stable>/cbm/<name>-assemble.cs)=,
+  no units. Node comes from the =reactPlus= capability.
+- *Assemble*: =siteBuild= runs =./astroProc.spcs -i siteBuild= from =siteBase=; =hereDns= and
+  =webVirtDom= run the planted files beside it; =fullUpdate= runs all three.
+- *Vhost*: static, =root <stable>/site/dist=, =error_page 404 /404.html= (=webVd_nginxSites.atBaseSite=
+  has no error_page).
+- *banna*: =<name>= (a registry slot plus the =.here= =hereIp=) and =<name>_dev= (=astro dev= /
+  =preview=), the 24xxx / 25xxx pairs.
+- *Leaf*: =sys/cbm/<realm>/hereWeb/<name>/=, in =branchesOrdered= after =nginx= and =reactPlus= and after
+  anything the site reports on (platform.here is last).
+- *Stable paths*: =/bisos/platform/web/...= for a site in bro_rawBisos, =/bisos/git/bxRepos/...= for a
+  repo.
+
+* Content From Scripts, Built as a Snapshot
+
+A site that shows facts (capabilities, layers) does not hard-code them: an executable in =content/bin/=
+writes =content/data/<x>.json=; pages in =site/src/pages/= read it at build time (platform.here's
+=site/src/lib/content.mjs= refuses to build without it, naming the script) and =getStaticPaths()= makes
+one page per item. Fixed pages win over the tree's catch-all page. The site shows what was true at its
+last build and says when; live checks from the browser were set aside (each =.here= name is another
+origin).
+
+* Conventions
+
+- *Pages, not anchors, for navigation entries*: navigation highlights by path.
+- *Short navigation labels*; summaries go on the pages.
+- *=compressHTML: false=* in =astro.config.mjs=: compression drops the space between text and an inline
+  element at a line break.
+- *Logical CSS properties* (=inline-start=, =border-inline-end=) so RTL pages mirror; the site's own
+  English chrome on an RTL page needs =dir="ltr"=.
+- *=pageLcnt= bodies under git*: generated, but kept, so a site builds on a host without HeVeA
+  (contentBuild keeps an existing body when HeVeA is missing).
+- *Org documentation*: lines of at most 105 characters, tables included (=readme-authorship=).
+
+* Pitfalls Already Found
+
+- =npm ci= needs =site/package-lock.json=: run =npm install= once in a new site and commit the lock file.
+- The reactProc seed knew React and Gatsby only and worked on the current directory (fixed 2026-10-18
+  with a =siteDir= parameter); an Astro site uses =astroProc=, not reactProc.
+- HeVeA appends "This document was translated from LaTeX by HeVeA": =\footerfalse= (in contentTree's
+  =.hva=) removes it.
+- bxtex's =bx-enfa.hva= defines =fa= / =faPar= empty: contentTree's =.hva= marks them
+  =lang="fa" dir="rtl"= (a candidate for bxtex).
+- Legacy Plone 3 bodies are HeVeA 1.10 HTML 4 documents: the readers take their =<body>= and =<style>=.
+- In a container, CPU, RAM, disk and the kernel are the host's; say so wherever a site reports them.
+- =find -type f= skips symlinks: a PALS site's =cbm/= then looks empty. Use =ls -la= (2026-10-19).
+- A copied =astroProc.spcs= keeps the source site's fqdn, docstring and banna dev port; a PALS's has
+  neither banna nor =devPortNu= (optional; =astro dev= defaults to 4321).
+
+* History: Plone 3, Gatsby, Astro
+
+The ByStar sites were Plone 3 sites built from =ContentTree/= directories (=lcaPlone3=). In October 2026
+BISOS sites were briefly Gatsby sites (=gatsby-starter-bystar-nestedSidebar=, the =gatsby-site=
+activity); Gatsby being in maintenance mode, they moved to Astro, and the Plone 3 ContentTree model came
+back as the content tree. =web/astroPoc= in bro_rawBisos is the proof of concept (the FPF ContentTree).
+
+* Available Skills
+
+All BISOS skills come from one shared set, =mother/_skills/=, so every activity sees all of them; the
+table names the ones a static site uses most. The full list is that directory.
+
+| Skill                   | Trigger --- when Claude loads it                                |
+|-------------------------+-----------------------------------------------------------------|
+| =astro-site-authorship= | creating or migrating a BISOS static site (Astro, content tree) |
+| =bx-pals-web-site=      | a PALS site: =uri/here/value=, =cbm/pals-*=, =palsOfSys.cs=     |
+| =bs-pals-web-edit=      | improving a served PALS site: its look (=local.css=), its text  |
+| =cbm-authorship=        | the site's CBM leaf: =cbmProc.spcs=, control and status         |
+| =banna-lookup=          | the site's port, =hereIp= and =_dev= port                       |
+| =readme-authorship=     | the site's =README.org=                                         |
+| =writing-cs-commands=   | Cmnds in =astroProc_csu= / =contentTree_csu=                    |
+| =dblock-authoring=      | the dblocks of the =.cs= / =.pcs= / =_csu.py= files             |
+
+# Local Variables:
+# eval: (setq-local toc-org-max-depth 3)
+# End:

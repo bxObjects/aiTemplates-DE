@@ -1,0 +1,230 @@
+#+title: AI Agents Guidance for Single-XU  PyCS
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+* Table of Contents     :TOC:
+- [[#general-overview-of-pycs-single-xu-development][General: Overview of PyCS Single-XU Development]]
+- [[#about-bisos-blee-and-bystar-concepts-and-terminology][About BISOS, Blee and ByStar Concepts and Terminology]]
+- [[#about-comeega----collaborative-org-mode-enhanced-emacs-generalized-authorship][About COMEEGA -- Collaborative Org-Mode Enhanced Emacs Generalized Authorship]]
+- [[#about-poly-dblock][About poly-dblock]]
+- [[#use-of-dblocks-for-unit-testing][Use of dblocks for unit testing]]
+- [[#programming-conventions][Programming Conventions]]
+- [[#python-library-preferences][Python Library Preferences]]
+- [[#python-typing-hints-and-static-checks--linting][Python Typing Hints And Static Checks / Linting]]
+- [[#cicd-and-totality-validating-and-testing][CI/CD and Totality Validating and Testing]]
+- [[#no-multi-platform--compatibility----only-one-of-the-latest-2-release-debian][No multi-platform  Compatibility -- Only one of the Latest 2 Release Debian]]
+- [[#repo-paths-always-via-bisosgitbxrepos][Repo Paths: Always Via =/bisos/git/bxRepos=]]
+- [[#git-commits-and-git-pushes][Git Commits and Git Pushes]]
+- [[#this-repo-is-layered-on-top-of-pycs-framework-bisosb-and-bisospycs][This Repo is Layered on Top of PyCS-Framework (bisos.b and bisos.pycs)]]
+- [[#writing-cs-commands][Writing CS commands]]
+- [[#relevant-examples-of-single-xus][Relevant Examples of Single-Xus]]
+- [[#documentation-hierarchy][Documentation Hierarchy]]
+
+* General: Overview of PyCS Single-XU Development
+
+A Single-XU is a PyCS (Python Command Services) eXecution Unit
+
+@/bisos/panels/development/bisos-dev/pythonDev/_nodeBase_/fullUsagePanel-en.org
+
+* About BISOS, Blee and ByStar Concepts and Terminology
+
+If needed read -- //bisos/git/bxRepos/bisos-pip//.github/profile/readme.org ---
+
+For Concepts and Terminology, import
+@/bisos/panels/bisos-core/modelAndTerminology/_nodeBase_/fullUsagePanel-en.org
+
+* About COMEEGA -- Collaborative Org-Mode Enhanced Emacs Generalized Authorship
+
+All of BISOS and Blee software development uses the COMEEGA syntax.
+The source code is a combination of python and org-mode.
+
+For an overview, import:
+@/bisos/git/bxRepos/blee/comeega/README.org
+
+COMEEGA, makes heavy use of org-mode dynamic blocks which insert
+python and org content in the source code.
+
+* About poly-dblock
+
+org-mode dynamic blocks are used heavily in python code.
+
+For an overview, import:
+@/bisos/git/bxRepos/blee/poly-dblock/README.org
+
+All the dblocks are in /bisos/blee/env3/dblocks --- Read them when needed.
+
+* Use of dblocks for unit testing
+
+For some PyCS Cmnds, we include the ability to run that Cmnd of XU inside of the Cmnd.
+That is done as a dblock which executes a bash command and captures the results.
+
+We don't always do unit testing. But when desired, it is done through dblocks within the Cmnd itself.
+
+There is no unit-test framework in this repo. Verification is done by running
+the =.cs=/=.pcs= executables and inspecting their output --- the expected output
+is captured inline in each command via =self.captureRunStr(...)=.
+
+
+* Programming Conventions
+
+Instead of language specific conventions, we use digital ecosystem wide programming conventions.
+
+A combination of CamelCase and Snake conventions are used.
+
+- Variable, Class, and Functions names are in CamelCase.
+- Concept collections are tagged with prefix_.
+
+* Python Library Preferences
+
+bisos-pip  library features are preferable to other public libraries.
+
+Always use pathlib for Path manipulations.
+
+* Python Typing Hints And Static Checks / Linting
+
+Use python typing hints in all of PyCS and BISOS modules.
+
+For any external module that has not been using typing hints, dont do typing hints.
+
+We typically do linting at final release time.
+
+linters live in
+  =/bisos/pipx/bin/= (=pyflakes=, =flake8=, =pylint=, =pycodestyle=). =mypy= is
+  used (a =.mypy_cache/= for py3.11 is present).
+
+
+* CI/CD and Totality Validating and Testing
+
+BISOS/Blee don't use conventional CI/CD pipelines.
+
+Instead, we regularly create complete VMs, using Vagrant.
+
+If the subject XU relates to RawBisos, it will be validated through rawBisos
+regression builds.
+The regression testing has the form of RawBisos re-construction.
+All of bisos-pip packages are used in that context.
+
+The regression testing has the form of RawBisos re-construction.
+All of bisos-pip packages are used in that context.
+
+See /bisos/git/bxRepos/bxGenesis/start/README.org  --  https://github.com/bxgenesis/start
+for RawBisos reconstruction.
+
+If the subject XU relates to a Capability, it will be validated through the Capability's Inceptor.
+
+* No multi-platform  Compatibility -- Only one of the Latest 2 Release Debian
+
+nd only one of the Latest 2 Releases of any given App
+
+None of what we do needs to be multi-platform. We only care about our own
+ByStar Digital Ecosystem.
+
+Windows compatibility is never required.
+Backwards compatibility is limited only to the two latest releases.
+
+
+* Repo Paths: Always Via =/bisos/git/bxRepos=
+
+Repos may be cloned under both =/bisos/git/anon/bxRepos/= (anonymous,
+read-only) and =/bisos/git/auth/bxRepos/= (authenticated, writable).
+Which of the two is authoritative on a given host is determined by the
+end of the =/bisos/git/bxRepos= symlink --- check with
+=readlink -f /bisos/git/bxRepos=. The other tree, if present, may be a
+stale clone weeks behind.
+
+- Always reference repos through =/bisos/git/bxRepos/...=, in docs,
+  code and commands. Never spell out =anon/= or =auth/=.
+- When a search (=find=, =grep -r=) lands in a path under
+  =/bisos/git/anon/= or =/bisos/git/auth/=, check it is inside the
+  =/bisos/git/bxRepos= target before reading or reporting state from it.
+
+* Git Commits and Git Pushes
+
+I don't want Claude to suggest me to prompt me:  "commit this" or "push this".
+I want to do all the commits and pushes myself.
+Instead just suggest that I myself can commit.
+
+
+* This Repo is Layered on Top of PyCS-Framework (bisos.b and bisos.pycs)
+
+PyCS-Framework is documented in:
+
+@/bisos/panels/bisos-core/PyCsFwrk/_nodeBase_/fullUsagePanel-en.org
+--- the framework's own usage panel; read for the semantics of =cs.Cmnd=,
+=g_csMain=, =cs.examples.*=, parameter / argument specs, and RO (remote
+operations).
+
+The PyCS-Framework package is at: /bisos/git/bxRepos/bisos-pip/pycs
+--- the framework source (=bisos.csPlayer= and related); consult when you need
+how the CS player, =csuList= imports, or seeding hooks actually work.
+
+PyCS-Framework augments the bisos.b package which is at /bisos/git/bxRepos/bisos-pip/b
+--- =bisos.b= provides the =cs=, =b_io=, and =b.op= APIs this repo imports.
+Its Blee-Panel is @/bisos/git/bxRepos/bisos-pip/b/py3/panels/bisos.b/_nodeBase_/fullUsagePanel-en.org
+
+When descending into either repo, follow its own (if present)
+the same way this file points up to the org-wide readme.
+
+
+* Writing CS commands
+
+Commands are classes subclassing =cs.Cmnd= (from =bisos.b import cs=). Each
+declares =cmndParamsMandatory=, =cmndParamsOptional=, =cmndArgsLen=, and a
+=cmnd()= method that does the work. The gitist commands live in
+=py3/bisos/gitist/gitist_csu.py= --- read =whichReactFramework= and
+=placeHolder= there as templates.
+
+The class header (the =class <Name>(cs.Cmnd):= line and the =cmnd()= signature)
+is generated from a =####+BEGIN: b:py3:cs:cmnd/classHead ...= dblock --- do not
+hand-edit between the =BEGIN=/=END= markers. Author only the body *after* the
+=####+END:= marker:
+
+- =cmndParamsMandatory= / =cmndParamsOptional= :: lists of parameter names the
+  command accepts (declared on the =classHead= dblock as =:parsMand= / =:parsOpt=).
+- =cmndArgsLen= :: =({'Min': N, 'Max': M})= positional-argument bounds. When the
+  command takes args, also define a =cmndArgsSpec()= method (its own
+  =b:py3:cs:method/args= dblock) using =cs.CmndArgsSpecDict().argsDictAdd(...)=,
+  and read them in =cmnd()= with =self.cmndArgsGet(...)=.
+- =cmnd(self, rtInv, cmndOutcome, ...)= :: the implementation. Start by calling
+  =self.cmndDocStr(...)= for the org description, optionally
+  =self.captureRunStr(...)= to capture expected example output (this *is* the
+  test --- see *Commands* above), do the work, and return
+  =cmndOutcome.set(opError=b.OpError.Success, opResults=...)=.
+
+Register the command in the seed's example menu (=examples_csu= /
+=examples_seed= in the same file) so it shows up in the plant's example output.
+
+* Relevant Examples of Single-Xus
+
+For a simple single-xu consider
+@/bisos/core/bpip/examples/exmpl-xu-oneSubProc.cs
+
+For a more featurefull example consider
+@/bisos/git/bxRepos/bisos-pip/aiActivity/py3/bin/aiActivity.cs
+
+bisos-pip examples are at:
+/bisos/git/bxRepos/bisos-pip/gitist/py3/panels/bisos.gitist/_nodeBase_/fullUsagePanel-en.org
+
+ Look for more examples by running find | grep \.cs$
+ in /bisos/git/bxRepos/bisos-pip
+
+* Documentation Hierarchy
+
+Through out development and AI-Activity, Claude is expected to maintain and update relevant documentation.
+
+There are many places where we maintain ByStar related documentation during an AI-Activity.
+
+- AI-WorkPlan.org is most immediate for Claude. It will be org-archived and is to be considered somewhat ehpemera.
+  
+- AI-DevStatus.org is to be updated by Claude and is for development use.
+  
+- Directory README.org is narrow in scope and is Human Oriented.
+
+- Repo README.org has a repo scope and is Human Oriented.
+
+- Relevant Blee Panels are most important and most permanant. These are to be
+  specified in the AI-WorkPlan.org and Claude should update them along with
+  AI-DevStatus.org
+
+  An overview of Blee Panels is available at
+@/bisos/panels/blee-core/blee-panels/_nodeBase_/fullUsagePanel-en.org

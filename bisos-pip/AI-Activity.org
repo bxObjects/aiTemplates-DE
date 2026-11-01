@@ -1,0 +1,353 @@
+#+title: AI Agents Guidance for bisos-pip PyCS Packages
+
+This file provides always-loaded orientation for Claude Code when working
+in a bisos-pip repo. Task-specific procedural knowledge (how to write a CS
+command, how to author a Blee panel, how to release to PyPI, etc.) lives
+in skills under =.claude/skills/= — Claude loads those on demand when the
+current task calls for them. See the "Available Skills" section below.
+
+* Table of Contents     :TOC:
+- [[#about-bisos-blee-and-bystar][About BISOS, Blee and ByStar]]
+- [[#core-vocabulary][Core Vocabulary]]
+- [[#programming-conventions][Programming Conventions]]
+- [[#comeega-authorship][COMEEGA Authorship]]
+- [[#python-library-preferences][Python Library Preferences]]
+- [[#python-typing-hints][Python Typing Hints]]
+- [[#no-multi-platform-compatibility][No Multi-Platform Compatibility]]
+- [[#repo-paths-always-via-bisosgitbxrepos][Repo Paths: Always Via =/bisos/git/bxRepos=]]
+- [[#git-commits-and-git-pushes][Git Commits and Git Pushes]]
+- [[#bisos-pip-packages-are-local-pip-installed][bisos-pip Packages Are Local pip-Installed]]
+- [[#this-repo-is-layered-on-top-of-pycs-framework][This Repo is Layered on Top of PyCS-Framework]]
+- [[#documentation-hierarchy][Documentation Hierarchy]]
+- [[#available-skills][Available Skills]]
+- [[#reference-panels][Reference Panels]]
+
+* About BISOS, Blee and ByStar
+
+ByStar (By*) is a Libre-Halaal digital ecosystem — a non-proprietary
+autonomy-oriented complete digital ecosystem.
+
+BISOS (ByStar Internet Services Operating System) is the technical
+foundation of ByStar. It's a layer on top of Debian that unifies
+service-side and usage-side software into a single "software-service
+continuum." Its basic unit is a *site* (private git server + registrar),
+and its core abstractions are BPOs (portable git-based packages of
+data/config/software) and PALS (Possession-Assertable Libre Services).
+
+Blee (BISOS Libre-Halaal Emacs Environment) is the primary usage and
+development environment for BISOS — a heavily-integrated Emacs layer.
+Blee and BISOS are intertwined.
+
+For concepts and terminology, import:
+@/bisos/panels/bisos-core/modelAndTerminology/_nodeBase_/fullUsagePanel-en.org
+
+* Core Vocabulary
+
+BISOS has a small set of precise terms whose distinctions matter for
+reading code and directory trees. Getting these wrong (e.g. calling a
+CBM a CBS, or using =band= where =realm= is the term) leads to
+mislayered work that has to be redone.
+
+** BXO / BPO / BRO --- ByStar Objects
+
+- *BXO* --- generic /ByStar Object/. Umbrella term. Any BISOS-managed
+  object is a BXO.
+- *BPO* --- /ByStar *Portable* Object/. A site-gitlab account that
+  holds one or more repos. Portable because it moves with the
+  site-gitlab, not tied to a host.
+- *BRO* --- /ByStar *Repo* Object/. A single git repository, typically
+  public, typically hosted on public GitHub or GitLab. One repo, one
+  BRO. Subdirectories inside a BRO are logical partitions, not separate
+  BROs.
+
+** =sys= vs =platform= --- self-reference vs generic
+
+- *=platform=* --- the /generic/ concept. A platform is an abstraction
+  any host could realise. Used in framework code and documentation to
+  mean "a platform, any platform."
+- *=sys=* --- /this specific platform, the one currently running/.
+  Wherever =sys/= appears in the tree, it means "the state of this
+  host, right here, right now." Self-reference, not a generic namespace.
+
+So =bro_rawBisosPlatform/= is the repo view of what belongs to a
+platform, and =bro_rawBisosPlatform/sys/= is the running state of
+/this/ platform.
+
+** The BISOS Platform --- edge-oriented, with a desktop
+
+The /BISOS Platform/ is not the usual server-versus-workstation split. It is
+edge-oriented: it typically includes Gnome or another thin desktop, and ordinary
+users manage their own platform. A graphical tool on a BISOS host is therefore
+normal, not an exception that needs justifying --- do not reject GUI software
+for a BISOS host on "servers are headless" grounds. Hosts are multi-tenant VMs,
+not containers; full materialization of capabilities is done on VMs.
+
+Vocabulary, as Mohsen uses it:
+
+- *Box* --- computer hardware without regard to its OS, physical or virtual.
+- *BISOS-Compatible-OS* --- an OS onto which BISOS can be loaded. All are Debian:
+  Debian (one of the two latest releases) on a Box, Debian as a VM under ChromeOS
+  (ChromeOsDeb), and Termux, a limited Debian in the userland of Android.
+- *BISOS-Compatible-Box* --- a Box plus a BISOS-Compatible-OS (DebianBox,
+  ChromeOsDeb, AndroidBox). A bare ChromeBox is not one.
+- *BISOS-Platform* --- the general concept of a platform (see =sys= vs =platform=
+  above).
+- *BISOS-System* --- /this/ particular platform, the one on which we are
+  executing. It is what =sys/= denotes. (It used to also name the kind of Box
+  that can become a Platform; that is now the BISOS-Compatible-Box.)
+- *Raw-Platform* (RAW-BISOS) --- a /stage/ in the build evolution of a platform:
+  a BISOS-Compatible-Box derived from a Fresh-Debian, loaded with BISOS software,
+  and not yet "sited" (not registered in a BISOS-Site). A Raw-Platform registered
+  in a BISOS-Site is a Reg-Platform.
+
+The terminology panel imported above has the formal list, in its "System,
+Platform, BpoHolder" section, updated on 2026-10-03 to match. The edge-oriented
+usage model is not stated in that panel.
+
+** realm / capabilityType --- two-level organisation under =sys/cbm/=
+
+Every CBM leaf lives at:
+
+: sys/cbm/<realm>/<capabilityType>/<capabilityName>/
+
+- *realm* --- a /domain of customization/. Which BXO owns / customizes
+  this capability. Five sibling realms exist today: =platform=, =site=,
+  =pals=, =user=, =collective=.
+- *capabilityType* --- /how/ the capability is delivered. Service vs.
+  no-service; local vs. remote; HTTP vs. mail vs. RPyC. Current types:
+  =hereWeb= (HTTP via =.here= domain), =hereMail= (mail via =.here=),
+  =rpyc= (PyCS RPyC performer), =induct= (non-service software
+  induction, e.g. LCNT).
+- *capabilityName* --- the specific capability (=airflow=, =nextcloud=,
+  =lcnt=, ...). Leaf directory name.
+
+*Do NOT use =band=.* An earlier draft used it; =realm= is the correct
+term.
+
+** CBA / CBS / CBM --- capability bundle triad
+
+- *CBA* --- Capability Bundle /Abstraction/. The framework layer. Lives
+  in =bisos.capability= (files =cba_seed.py=, =cba_sysd_seed.py=,
+  =cba_csu.py=, =cba_sysd_csu.py=).
+- *CBS* --- Capability Bundle /Specification/. A standalone executable
+  =.pcs= file that declares one specific capability's contents
+  (sbom + sysd units + dns + vhost + ...). Example:
+  =/bisos/git/bxRepos/bisos-pip/airflow/py3/bin/airflow-cbs.pcs=.
+- *CBM* --- Capability Bundle /Materialization/. A =cbmProc.spcs=
+  planted at a leaf in the CBM tree, gated by a sibling
+  =cbmProc.control= file. *Points to* a CBS; does NOT duplicate CBS
+  content. When materialization runs, CBM subprocess-invokes the CBS.
+
+Load-bearing principle: *CBM sits on top of CBS, does not duplicate
+it.* See the =cbm-authorship= skill for the full pattern.
+
+** rawBisosCBMs --- how CBMs layer on the raw platform
+
+Raw-BISOS (=raw-bisos.sh=) is a basic platform and ends there. Generic CBM pip packages
+(=bisos.<name>=) are a base layer on top of it: each brings its capability up minimally, out of
+the box, as =<name>.here=, and the enabled leaves planted in =bro_rawBisos= form the
+rawBisosCbm set that =sysCbmManage.cs -i fullyMaterialize= (=bisos.capability=) brings up as a
+regression run. Real servers --- scale, site settings, security --- come later, through niching
+and CapabilityBPOs; some CBMs (GitLab, Kafka, Airflow, devpi) typically run for real in
+dedicated VMs. The concept and the catalog of CBMs (gates, footprints, minimal settings) are in
+=/bisos/git/bxRepos/bxGenesis/start/rawBisosCBMs/README.org= --- read it before adding or
+planting a CBM, and update its tables when you do. Building a package: the
+=cbm-package-authorship= skill.
+
+* Programming Conventions
+
+Digital-ecosystem-wide programming conventions apply, not language-specific ones:
+
+- Variable, class, and function names: CamelCase
+- Concept collections: tagged with =prefix_= (snake prefix, CamelCase body)
+
+* COMEEGA Authorship
+
+*COMEEGA* (Collaborative Org-Mode Enhanced Emacs Generalized Authorship)
+is the standard authorship model for all BISOS source. It applies to
+Python, elisp, bash, LaTeX (and HTML, stubbed). In COMEEGA, org-mode
+content is embedded inside each language's comment-block or docstring
+syntax, and org-mode dynamic blocks (=####+BEGIN: ... ####+END:=) are
+extended to non-org files.
+
+*Universal rule.* Never hand-edit content between =####+BEGIN:= and
+=####+END:= markers. That content is *generated* — either by Blee/Emacs
+(=M-x org-dblock-update=) or by =py-dblock.cs= for pure-Python
+regeneration. Edit only the =####+BEGIN:= header line and the body
+*after* the =####+END:= marker.
+
+*Header dblock chain.* Every hand-authored BISOS Python source file
+(=.cs=, =.spcs=, =_csu.py=, =_seed.py=, =_seedInfo.py=) opens with a
+sequence of dblocks:
+
+- =b:py3:cs:file/dblockControls :classification "<cls>"= — cs-mu / cs-u / cs-lib / bpf-lib / pyLibPure
+- =b:prog:file/proclamations= — AGPL + BISOS + Poly-COMEEGA proclamation
+- =b:prog:file/particulars= — authors, this-file paths
+- =b:py3:file/particulars-csInfo= — the =csInfo= dict
+- =b:prog:file/orgTopControls= — org navigation controls
+- =b:py3:file/workbench= — Blee workbench links (pyflakes, pylint, ...)
+- =b:py3:cs:framework/imports :basedOn "classification"= — standard imports
+- (for =.cs= csxu files) =b:py3:cs:framework/csxuSeeded=, =csuListProc=,
+  =main/exposedSymbols=, =main/outcomeReportControl=, =framework/main=,
+  =framework/endOfFile=
+
+For any =cs.Cmnd= subclass, the class header is generated by a
+=b:py3:cs:cmnd/classHead= dblock — author the body *after* =####+END:=.
+
+*Canonical reference.* Read the full model in
+=/bisos/git/bxRepos/blee/comeega/README.org= (URL fallback:
+https://github.com/bx-blee/comeega). This covers the per-language
+comment-block/docstring/dblock syntax for Python, elisp, bash, LaTeX,
+and HTML.
+
+*Relevant skills.* The =comeega-authorship= skill covers the COMEEGA
+model, cross-language. The =dblock-authoring= skill covers dblock
+mechanics. The =writing-cs-commands= skill covers the
+=b:py3:cs:cmnd/classHead= dblock in detail. The =bisos-pip-setup-py=
+skill has the concrete recipe for a new =.cs= file's header dblock
+chain.
+
+* Python Library Preferences
+
+- Prefer =bisos-pip= library features over other public libraries.
+- Always use =pathlib= for path manipulations (never =os.path=).
+
+* Python Typing Hints
+
+Use Python type hints in all PyCS and BISOS modules. For external modules
+that have not been using type hints, do not add them.
+
+Linting is done at release time. See the =bisos-pip-release= skill.
+
+* No Multi-Platform Compatibility
+
+Only one of the two latest Debian releases is supported. Windows
+compatibility is never required. Backward compatibility is limited to the
+two latest releases.
+
+* Repo Paths: Always Via =/bisos/git/bxRepos=
+
+Repos may be cloned under both =/bisos/git/anon/bxRepos/= (anonymous,
+read-only) and =/bisos/git/auth/bxRepos/= (authenticated, writable).
+Which of the two is authoritative on a given host is determined by the
+end of the =/bisos/git/bxRepos= symlink --- check with
+=readlink -f /bisos/git/bxRepos=. The other tree, if present, may be a
+stale clone weeks behind.
+
+- Always reference repos through =/bisos/git/bxRepos/...=, in docs,
+  code and commands. Never spell out =anon/= or =auth/=.
+- When a search (=find=, =grep -r=) lands in a path under
+  =/bisos/git/anon/= or =/bisos/git/auth/=, check it is inside the
+  =/bisos/git/bxRepos= target before reading or reporting state from it.
+
+* Git Commits and Git Pushes
+
+Do NOT suggest "commit this" or "push this". The developer performs all
+commits and pushes. Instead, when work is complete, say something like:
+"You can commit when ready."
+
+* bisos-pip Packages Are Local pip-Installed
+
+All bisos-pip packages (including =bisos.b=) are installed via
+=pip install -e= (editable/development mode) from their source repos under
+=/bisos/git/bxRepos/bisos-pip/=. The venv at =/bisos/venv/py3/bisos3/=
+picks up packages directly from the source tree.
+
+*Do NOT edit files under* =/bisos/venv/py3/bisos3/lib/python3.11/site-packages/=.
+Always edit the corresponding source repo:
+
+| Package    | Source repo                                         |
+|------------+-----------------------------------------------------|
+| bisos.b    | /bisos/git/bxRepos/bisos-pip/b/py3/bisos/b/         |
+| bisos.pycs | /bisos/git/bxRepos/bisos-pip/pycs/                  |
+
+If the package is installed non-editable and the site-packages copy does
+not reflect source changes, reinstall editable:
+
+: pip install -e /bisos/git/bxRepos/bisos-pip/b/py3
+
+* This Repo is Layered on Top of PyCS-Framework
+
+- =bisos.b= — PyCS-Core. Provides =cs=, =b_io=, =fp=, =b.op= APIs.
+  Source: =/bisos/git/bxRepos/bisos-pip/b=
+  Panel: @/bisos/git/bxRepos/bisos-pip/b/py3/panels/bisos.b/_nodeBase_/fullUsagePanel-en.org
+- =bisos.pycs= — PyCS-Foundation. Framework source (=bisos.csPlayer= etc.).
+  Source: =/bisos/git/bxRepos/bisos-pip/pycs=
+- PyCS-Framework panel: @/bisos/panels/bisos-core/PyCsFwrk/_nodeBase_/fullUsagePanel-en.org
+
+When descending into either repo, follow its own if present.
+
+* Documentation Hierarchy
+
+During AI-Activity, Claude maintains and updates relevant documentation
+at multiple levels:
+
+- =AI-WorkPlan.org= — most immediate; ephemeral, will be org-archived
+- =AI-DevStatus.org= — dev-state handoff between sessions/machines
+- =README.org= (directory or repo) — human-oriented
+- Blee-Panels (=py3/panels/.../fullUsagePanel-en.org=) — most permanent
+
+Update Blee-Panels of bisos-pip and blee packages *first*; point to those
+from =/bisos/panels= afterwards.
+
+*Important — =README.rst= is generated, not authored.* Every bisos-pip
+package has =README.org= (source, at repo root) and =py3/README.rst= (PyPI
+form). =README.rst= is regenerated from =README.org= by
+=py3/pypiProc.sh -i fullPrep= (and by =fullPrepBuild forPypi= which calls
+it). *Never hand-edit =README.rst=* — edits will be silently overwritten
+at release time. If you need to update the README, edit =README.org= and
+let =pypiProc.sh= regenerate the RST when releasing. Between releases,
+=README.rst= being stale relative to =README.org= is expected and
+harmless.
+
+An overview of Blee Panels:
+@/bisos/panels/blee-core/blee-panels/_nodeBase_/fullUsagePanel-en.org
+
+* Available Skills
+
+All BISOS skills come from one shared set, =mother/_skills/= (19 today), so every
+activity sees all of them; the table names the ones this activity uses most. The full
+list is that directory.
+
+The following skills are installed under =.claude/skills/= and loaded by
+Claude on demand when the current task matches:
+
+| Skill                   | Trigger — when Claude loads it                              |
+|-------------------------+-------------------------------------------------------------|
+| =comeega-authorship=    | Understanding or applying the COMEEGA (Collaborative Org-Mode Enhanced Emacs Generalized Authorship) model — the cross-language convention behind all BISOS source (Python, elisp, bash, LaTeX, HTML) |
+| =writing-cs-commands=   | Writing or modifying a =cs.Cmnd= subclass (=.cs= / =_csu.py=) |
+| =dblock-authoring=      | Working with poly-dblock =####+BEGIN:= blocks, csuListProc, or dblock-based unit tests |
+| =bisos-pip-setup-py=    | Reading, understanding, or modifying =py3/setup.py= in any bisos-pip package — covers dblock-driven structure, which scripts belong in the =scripts= list (only =.cs= and =.spcs=; never =.pcs=), what must NEVER be hand-edited, and mandatory COMEEGA dblock structure for new =.cs= files |
+| =readme-authorship=     | Writing or updating =README.org= (repo root — the ONLY authored README; =py3/README.rst= is *generated* by =pypiProc.sh -i fullPrep= and must never be hand-edited) |
+| =blee-panel-authorship= | Writing or updating =py3/panels/.../fullUsagePanel-en.org=  |
+| =bisos-pip-release=     | Preparing a PyPI release: linting, packaging, upload        |
+| =configfile-pattern=    | Wiring a seed package to manage a config file via =configFile.ConfigFile= subclass, =--cls=, and the required =csuList= entries |
+| =banna-lookup=          | Looking up TCP port numbers or IP addresses for BISOS services via =bisos.banna= (never hardcode ports that banna tracks) |
+| =sysd-pcs-authorship=   | Authoring a =*-sysd.pcs= planted file: =systemd_seedInfo.setup()= params, =sysdUnitFileFunc=, =preFunc=/=postFunc= hooks, oneshot units, =Requires=/=After== ordering, CBS assembly |
+| =cbm-authorship=        | Authoring a =cbmProc.spcs= CBM leaf, =cbmProc-seed.cs=, =cbm_*= Cmnds, or the =cbmProc.control=/=cbmProc.status= gate files. Covers CBM/CBS layering (CBM subprocess-invokes CBS; does NOT duplicate it), the pointer pattern (=capabilityName= + =cbsSpec=), gate-as-Cmnd-body, =cbsSpec= resolution (absolute or PATH-basename), and the non-invasive rule for =cba_*= files |
+| =cbm-package-authorship= | Creating a whole bisos-pip CBM package for an open-source program (bisos.kafka, bisos.prometheus, bisos.grafana, bisos.pypiserver): decisions to settle first, banna registrations, pinned/verified upstream releases, Python programs in asc or isolated venvs, scaffolding from a model package, =<name>Info.py=, the server/usage/bundle sbom trio, units, vhost, CBS, admin CS with driftCheck, docs, materialization, pitfalls. Ships tools (=cbmPkgScaffold.sh=, =makeCs.py=) |
+| =icm-to-pycs-conversion= | Converting a Bash-ICM library (=*_lib.sh= under =/bisos/core/bsip/bin/=, =vis_*= functions, =G_funcEntry=, =EH_assert=, =FN_*= helpers) into PyCS =cs.Cmnd= classes in a =_csu.py= module. Covers the idiom mapping table, picking the right target csu module, and the copy-vs-move rule when another pip package has overlapping code |
+
+Skills also work as human-readable documentation — the =SKILL.md= inside
+each folder describes when and how to do that specific kind of work.
+
+* Reference Panels
+
+Reference panels for deeper context, imported on demand:
+
+- PyCS-Framework layerings — @/bisos/panels/bisos-core/PyCsFwrk/pycsFwrkLayerings/_nodeBase_/fullUsagePanel-en.org
+- Here-BISOS platform layerings — see =/lcnt/lgpc/bystar/permanent/common/figures/hereBisosPycs.pdf=
+- Site-BISOS platform layerings — see =/lcnt/lgpc/bystar/permanent/common/figures/siteBisosPycs.pdf=
+- PyCS as universal substrate — see =/lcnt/lgpc/bystar/permanent/common/figures/bystarOverPycsSubstrate.pdf=
+- Adopted packages of PyCS-Framework — @/bisos/panels/bisos-core/PyCsFwrk/pyAdoptedPkgs/_nodeBase_/fullUsagePanel-en.org
+- PyCS Players (Web-UI, Blee) — @/bisos/panels/bisos-core/PyCsFwrk/csPlayers/_nodeBase_/fullUsagePanel-en.org
+- List of bisos-pip packages and status — @/bisos/panels/bisos-core/bisos-pip/_nodeBase_/fullUsagePanel-en.org
+- bisos-pip packaging machinery — @/bisos/panels/bisos-core/PyCsFwrk/bisos-pip-packaging/_nodeBase_/fullUsagePanel-en.org
+- COMEEGA — @/bisos/git/bxRepos/blee/comeega/README.org
+- poly-dblock — @/bisos/git/bxRepos/blee/poly-dblock/README.org
+- Comprehensive bisos-pip README — /bisos/git/bxRepos/bisos-pip/_github/profile/readme.org
+
+CI/CD is via *RawBisos Vagrant-based reconstruction*, not conventional
+pipelines. All bisos-pip packages are exercised in that context.
+See @/bisos/git/bxRepos/bxGenesis/start/README.org and
+https://github.com/bxgenesis/start.

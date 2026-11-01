@@ -1,0 +1,44 @@
+
+* Concept of BISOS Capabilities
+
+ BISOS Capabilities allow for addition of features to BISOS.
+
+ Read
+
+ @/bisos/panels/bisos-core/modelAndTerminology/_nodeBase_/fullUsagePanel-en.org
+
+ Which describes the Model and Teminology of BISOS and ByStar.
+
+Also Read
+
+ @/bisos/panels/bisos-core/bisos-pip/bisos.capability/_nodeBase_/fullUsagePanel-en.org
+
+ Which describes some details of how BISOS-capabilities  are implemented.
+
+ Exisiting web virtual domain services are at the following directory.
+
+ @/bisos/asc/web/bin/
+
+** Web Virtual Domain Services (wvds) Pattern
+
+This is a common category of web services in which a service run at a port and then
+is exposed at a virtual domain. In addition to the ByStar domain specification is general
+the web service is also exposed at localhost.
+
+See
+
+@/etc/hosts
+
+As a wvds, consider airflow in the context of airflow.here of /etc/hosts as an example:
+
+@/bisos/asc/web/bin/airflow-sbom.pcs                 :: Installs airflow and its dependencies
+@/bisos/asc/web/bin/airflow-webserver-sysd.pcs       :: Creates systemd entry/ies for airflow
+@/bisos/asc/web/bin/airflow-here-wvds-nginx.pcs      :: NOTYET, creates virdom entry for here and airflow
+@/bisos/asc/web/bin/airflow-here-dns.pcs             :: NOTYET, for here, run dblock on etc/hosts
+@/bisos/asc/web/bin/airflow-cbs-wvds-np-sysd.pcs     :: Does all of the above
+
+** CBS Triggers Hierarchy for rawBisos
+
+@ /bisos/git/bxRepos/bxObjects/bro_rawBisos/bro_rawBisosPlatform
+@ /bisos/git/bxRepos/bxObjects/bro_rawBisos/bro_rawBisosPals
+@ /bisos/git/bxRepos/bxObjects/bro_rawBisos/bro_rawBisos_pbsi-here

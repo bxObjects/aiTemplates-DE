@@ -1,0 +1,380 @@
+#+title: AI Agents Guidance for graphviz PyCS Planted Command Services (-graphviz.pcs)
+
+This file provides always-loaded orientation for Claude Code when working
+on graphviz-pcs figures --- authored as =*-graphviz.pcs= (or =*-graphviz.cs=)
+scripts in an =images/= directory. Task-specific procedural knowledge (how
+to iterate a figure, the render-preview loop, colour/shape palettes) lives
+in skills under =.claude/skills/= --- Claude loads those on demand when the
+current task calls for them. See "Available Skills" below.
+
+* Table of Contents     :TOC:
+- [[#what-a-graphviz-pcs-is][What a graphviz-pcs Is]]
+- [[#file-anatomy][File Anatomy]]
+- [[#the-namedgraph-registration-pattern][The namedGraph Registration Pattern]]
+- [[#running-and-previewing][Running and Previewing]]
+- [[#idioms-layering-vs-clusters][Idioms: Layering vs Clusters]]
+- [[#semantic-colour-and-shape-conventions][Semantic Colour and Shape Conventions]]
+- [[#multi-graph-modules][Multi-graph Modules]]
+- [[#comeega-boilerplate][COMEEGA Boilerplate]]
+- [[#embedding-in-readme-and-panels][Embedding in README and Panels]]
+- [[#available-skills][Available Skills]]
+
+* What a graphviz-pcs Is
+
+A =*-graphviz.pcs= file is a PyCS "Planted Command Service" script that
+produces one or more graphviz figures. It is *executable* (=chmod +x=)
+and sits in an =images/= directory alongside its rendered outputs
+(=.pdf=, =.png=, =.svg=, ...). The =.pcs= extension marks it as
+"planted" --- the file is self-standing but transparently uses the
+shared =bisos.graphviz= seed engine.
+
+The seed engine is =bisos.graphviz.graphvizSeed=, installed by
+[[https://github.com/bisos-pip/graphviz-cs][=bisos.graphviz-cs=]]. It provides:
+
+- =namedGraph()= (aliased as =ng=): decorator/registrar for graph
+  functions.
+- =graphvizSeed.setup()=: called at module top level, wires the file
+  into the PyCS command surface (=ngProcess=, =ngClean=, etc.).
+- Auto-generated PyCS =examples= menu with one full block per named
+  graph, one line per output format (=pdf=, =png=, =svg=, =jpg=,
+  =gv=, =evince=, =odg=, =all=).
+
+Any script that follows the pattern below is *automatically* a full
+PyCS csxu: it produces an examples menu on bare invocation, accepts
+=-i ngProcess --format=<fmt> <graphName>=, and cooperates with the
+rest of the BISOS toolchain.
+
+* File Anatomy
+
+Structure top-to-bottom:
+
+1. *Shebang*: =#!/usr/bin/env python=.
+2. *file/particulars dblock*: standard COMEEGA boilerplate identifying
+   the file and authors.
+3. *Imports*: =from bisos import b=, =from bisos.b import cs=,
+   =import graphviz=, =from bisos.graphviz import graphvizSeed=,
+   =ng = graphvizSeed.namedGraph=.
+4. *Zero or more graph functions*, each:
+   - Preceded by a =b:py3:cs:func/typing= dblock (COMEEGA function
+     header --- gets an org-mode heading, elisp navigation links).
+   - Decorated with =@cs.track(fnLoc=True, fnEntry=True, fnExit=True)=.
+   - Signature =def graphName() -> graphviz.Digraph=.
+   - Body: build a =graphviz.Digraph=, add nodes and edges,
+     =return d=.
+5. *Optional trailing docstring block* per graph containing the
+   =#+begin_src sh :results output :session shared= snippet with the
+   exact render command --- lets Emacs users eval to render inline.
+6. *=Seed Setup= dblock header* (COMEEGA orgItem/basic).
+7. *=namedGraphsList== list assignment*, containing one
+   =ng("graphName", func=graphName)= entry per graph.
+8. *=graphvizSeed.setup(seedType="common", namedGraphsList=..., ...)==
+   call at module top level.
+9. *Optional trailing seed/withWhich dblock* --- sources
+   =seedGraphviz.cs= if the file is run standalone rather than through
+   the seed. Currently used inconsistently; can be omitted for pure
+   =.pcs= use.
+
+Everything between (4) and (8) is domain content. The rest is
+COMEEGA + PyCS boilerplate that stays constant across files.
+
+* The namedGraph Registration Pattern
+
+Each graph is a *function* returning a =graphviz.Digraph=. It is
+registered by name in =namedGraphsList= before =graphvizSeed.setup(...)=
+is called. The name in =ng("graphName", func=graphName)= is what the
+user types on the CLI:
+
+: myFile-graphviz.pcs -i ngProcess --format=png graphName
+
+Names should be short, unambiguous, and file-scoped. In multi-graph
+modules with progressive detail (e.g. =foo=, =foo_l0=, =foo_l1=,
+=foo_l2=), the =_lN= suffix denotes layer/detail level.
+
+Adding a new graph to an existing =.pcs= file is a three-line change:
+
+1. Write the function (with the surrounding dblocks).
+2. Add =ng("newGraph", func=newGraph),= to =namedGraphsList=.
+3. The PyCS examples menu re-generates automatically --- no other
+   registration needed.
+
+** Manifest-at-top ordering: use a forward-reference lambda
+
+The natural Python order is *function definitions first, then
+=namedGraphsList= at the bottom*. This is what the older corpus
+files use.
+
+An alternative --- placing =namedGraphsList= and =graphvizSeed.setup()=
+*near the top* as a "manifest" of what the file exports, with
+function bodies below --- is also legitimate and can be more
+readable. But Python resolves names at line-evaluation time, so
+=ng("myGraph", func=myGraph)= at line 30 raises =NameError= if
+=myGraph= isn't defined until line 60.
+
+The fix is a *nullary lambda* that defers name resolution to call
+time:
+
+#+begin_src python
+namedGraphsList = [
+    # Forward reference: myGraph is defined below this block.
+    ng("myGraph", func=lambda: myGraph()),
+]
+#+end_src
+
+The seed engine calls =func()= when it needs the =Digraph=; by then
+=myGraph= is bound in module globals and the lambda dereferences it.
+Add a one-line comment explaining the deferral --- the lambda looks
+unusual and a reader will otherwise wonder why not just =func=myGraph=.
+
+Choose ordering by preference: functions-first is idiomatic Python;
+manifest-at-top reads like a table of contents. Both work.
+
+** =title= and =caption= for LCNT integration
+
+Each =ng(...)= entry can carry optional =title= and =caption= kwargs.
+When present, =--format=lcnt= writes plain-text sibling files
+=<name>.title= and =<name>.caption= into the images directory,
+alongside the rendered =.pdf= / =.png= / =.svg= etc:
+
+#+begin_src python
+namedGraphsList = [
+    ng("myGraph",
+       func=lambda: myGraph(),
+       title="Short One-Line Title",
+       caption="A longer prose caption describing what the "
+               "figure shows, suitable for a figure caption "
+               "in a LaTeX document or an org-mode #+CAPTION."),
+]
+#+end_src
+
+These sidecars are consumed by LCNT-framework tooling (LaTeX
+=\input{myGraph.title}= / =\input{myGraph.caption}=, org-mode
+=#+INCLUDE=, Blee-panel snippets, etc.). =graphviz-cs= stays neutral
+about the envelope --- consumers wrap the raw text in whatever
+figure-environment their format requires.
+
+Semantics:
+- Both =title= and =caption= are optional. If both are =None=, no
+  sidecar files are written.
+- If one is set and the other =None=, only the non-None sidecar
+  appears.
+- =--format=all= *includes* =lcnt=, so a routine "build everything"
+  invocation refreshes the sidecars alongside the graphics.
+- =ngClean --format=all= removes =.title= / =.caption= (treated like
+  =.gv=: regenerable from source).
+- =ngClean --format=lcnt= removes only the two sidecars.
+
+* Running and Previewing
+
+Standard invocation forms:
+
+- =myFile-graphviz.pcs= (no args) → prints the auto-generated PyCS
+  examples menu including one block per named graph.
+- =myFile-graphviz.pcs -i ngProcess --format=png <graphName>= →
+  produces =<graphName>.png=.
+- =myFile-graphviz.pcs -i ngProcess --format=evince <graphName>= →
+  produces =<graphName>.pdf= *and* opens it in Evince for preview.
+  This is the primary iteration loop.
+- =myFile-graphviz.pcs -i ngProcess --format=all <graphName>= →
+  produces every supported format including LCNT sidecars.
+- =myFile-graphviz.pcs -i ngProcess --format=lcnt <graphName>= →
+  produces =<graphName>.title= and =<graphName>.caption= plain-text
+  sidecars (only if the graph declares =title= / =caption= --- see
+  "=title= and =caption= for LCNT integration" below).
+- =myFile-graphviz.pcs -i ngProcess --format=all all= → renders
+  every named graph in every format (batch build).
+- =myFile-graphviz.pcs -i ngClean --format=all all= → cleans
+  intermediates (keeps =.pdf=, =.svg=, and =.odg=).
+- =myFile-graphviz.pcs -i ngClean --format=full all= → cleans
+  everything.
+- =myFile-graphviz.pcs -i ngClean --format=lcnt all= → cleans
+  only the =.title= and =.caption= sidecars.
+
+For iterative work, add the =#+begin_src sh :results output :session
+shared= trailer next to each graph function so Emacs C-c C-c evals it
+to render + preview without leaving the buffer.
+
+* Idioms: Layering vs Clusters
+
+Two dominant structural idioms:
+
+** Layered (rank-based)
+
+Nodes are placed into horizontal or vertical bands using
+=with d.subgraph() as s: s.attr(rank='same'); ...=. This is the
+most common idiom for "pipeline" or "stack" figures --- everything
+flows top-to-bottom (default =rankdir=), each rank is one conceptual
+tier.
+
+Use when: the figure has a clear sequence of tiers and the reader's
+eye should sweep top-to-bottom. Examples: install-time flow, software
+stack, layered architecture.
+
+** Cluster-based
+
+Nodes are grouped into named clusters with bounding boxes:
+
+#+begin_src python
+with d.subgraph(name='cluster_composition') as c:
+    c.attr(label='Composition Framework', style='filled', color='lightgrey')
+    c.node('X', ...)
+    c.edge('X', 'Y')
+#+end_src
+
+The =cluster_= name prefix is significant --- graphviz draws a
+labelled bounding box only when the subgraph name starts with
+=cluster_=. Fill and border can be set via =c.attr(...)=.
+
+Use when: nodes fall into groups by *concern* (rather than
+*sequence*), and each group deserves its own visual boundary and
+label. Examples: concept maps with named sub-regions,
+domain-partitioned architectures.
+
+*Trade-off*: cluster subgraphs compete with rank= for layout
+authority. Combining them can produce unpredictable results. If a
+figure needs both, prefer layered as the primary structure and add
+clusters sparingly.
+
+** =rankdir=
+
+- =TB= (top-to-bottom, default) --- pipelines, stacks, hierarchies
+  read downward.
+- =LR= (left-to-right) --- concept maps, wide flows with many
+  parallel branches.
+
+Set via =d.attr(rankdir='LR')= or in the =Digraph(graph_attr={'rankdir':'LR'})=
+constructor.
+
+* Semantic Colour and Shape Conventions
+
+Colours in graphviz-pcs figures are *semantic*, not aesthetic. Each
+colour carries a meaning that a reader should be able to decode from
+the figure's legend or from convention. Established palette across
+the BISOS graphviz-pcs corpus:
+
+| Fill colour        | Meaning                                                   |
+|--------------------+-----------------------------------------------------------|
+| =darkseagreen3=    | Infrastructure / framework / concept anchor               |
+| =khaki1=           | Specifications / configuration / content files           |
+| =lightyellow=      | Container / base path                                     |
+| =deepskyblue=      | Adopted external component (a project we depend on)       |
+| =cyan2=            | Adopted external component (deeper --- graphviz itself)   |
+| =darksalmon=       | Output artefact / rendered file / interactive UI          |
+| =salmon= / =salmon2= / =salmon3= | Interactive command / dispatcher / processor  |
+| =orange=           | Interactive command (Gnus, external dispatcher)           |
+| =magenta=          | Execution path (compose, native/external)                 |
+| =green=            | Enumerable choice / selection                             |
+| =azure3=           | Enum value (leaf)                                         |
+| =lightgoldenrod1=  | Symlinked file (shared, upstream)                         |
+| =mistyrose=        | Safe-copied file (per-project, editable)                  |
+| =lightblue=        | CLI parameter                                             |
+| =lightsteelblue=   | Persistent store (file-parameter)                         |
+| =lightsalmon1=     | Derived usage / secondary process                         |
+| =thistle=          | Consumer / reader / external observer                     |
+
+Shape conventions:
+
+| Shape               | Meaning                                                    |
+|---------------------+------------------------------------------------------------|
+| =rectangle= (default) | Basic entity, parameter, structured concept              |
+| =circle=            | Concept anchor / focus node                                |
+| =folder=            | Directory                                                  |
+| =note=              | File (readable content)                                    |
+| =cylinder=          | Store, enum specification, source of choice                |
+| =parallelogram=     | Content file (message, template, script content)           |
+| =rarrow=            | Processing arrow / command dispatcher                      |
+| =cds=               | Service (with input/output notch, e.g. MTA)                |
+| =invtrapezium=      | Buffer (mail buffer, unsent buffer)                        |
+| =oval=              | Command / callable operation                               |
+| =ellipse=           | Consumer / external agent (Claude Code, user)              |
+
+These conventions *emerged* from the corpus. When authoring a new
+figure, look at existing figures first --- reuse an existing meaning
+if one fits. Introduce a new colour/shape only when no existing one
+carries the semantics you need, and update this table.
+
+* Multi-graph Modules
+
+A single =.pcs= file often contains several graphs at different
+levels of detail. Common patterns:
+
+- *=name= and =name_l0=, =name_l1=, ...*: progressive-detail
+  layers. =_l0= is highest-level overview; higher =_lN= adds detail.
+- *=name= and =clustered_name=*: two views of the same domain ---
+  layered vs cluster-grouped.
+
+Registration is one =ng(...)= entry per function in =namedGraphsList=.
+Each becomes its own PyCS command block in the examples menu.
+
+Related graphs should share node names where they represent the same
+concept, so a reader following one file can visually track the same
+node across figures. E.g. =MTDT= appears identically in the summary
+and every layer of the mtdt module.
+
+* COMEEGA Boilerplate
+
+Every graph function is wrapped in COMEEGA dblocks that provide
+org-mode structure, elisp navigation links, and cs.track logging:
+
+#+begin_example
+####+BEGIN: b:py3:cs:func/typing :funcName "graphName" :funcType "Typed" :deco "track"
+""" #+begin_org
+*  ... elisp navigation ... /graphName/  deco=track  ...
+#+end_org """
+@cs.track(fnLoc=True, fnEntry=True, fnExit=True)
+def graphName(
+####+END:
+) -> graphviz.Digraph:
+    ...
+    return d
+#+end_example
+
+The dblock renders as an org heading in Blee and provides menu-driven
+navigation. The =####+BEGIN=/=####+END= markers are updated by
+=poly-dblock= re-expansion if the =funcName= or =deco= arguments
+change. Do not hand-edit the region between the markers --- edit the
+function code below =####+END:= only.
+
+The =b:prog:file/particulars= dblock at the top of the file (with
+=:authors= parameter) is similarly regenerated from configuration and
+should not be hand-edited.
+
+* Embedding in README and Panels
+
+The =.pcs= file lives in an =images/= directory; its rendered
+outputs (=.png=, =.pdf=, =.svg=) sit alongside it. To include a
+figure in a README or Blee panel:
+
+- *README (org-mode)*: =[[file:images/graphName.png]]= --- renders
+  inline in GitHub, PyPI, and org-mode viewers. PNG is the safest
+  format for cross-tool rendering; SVG works on GitHub but is
+  inconsistent on PyPI.
+- *Blee panel*: same relative link syntax; Blee also honours
+  =#+ATTR_HTML= for size and alignment.
+
+When embedding, place the figure *near* its explanation. A
+figure-then-caption pattern works, but *legend-then-figure* is
+better when the figure uses non-obvious colours/edge styles ---
+readers pre-load the conventions and then decode the picture.
+
+The =images/= directory should be committed to the repo including
+both source (=.pcs=, =.gv=) and rendered artefacts (=.png=,
+=.pdf=). This lets consumers see the figures without needing the
+graphviz toolchain installed. Regenerate with =-i ngProcess
+--format=all all= when the source changes.
+
+* Available Skills
+
+All BISOS skills come from one shared set, =mother/_skills/= (19 today), so every
+activity sees all of them; the table names the ones this activity uses most. The full
+list is that directory.
+
+The following skills are installed under =.claude/skills/= and loaded
+on demand when the current task matches:
+
+| Skill                | Trigger --- when Claude loads it                            |
+|----------------------+-------------------------------------------------------------|
+| =graphviz-authoring= | Writing or modifying a =*-graphviz.pcs= figure --- shape choice, palette use, iteration loop, adding a new named graph, embedding in README/panel |
+
+Skills also work as human-readable documentation --- the =SKILL.md=
+inside each folder describes when and how to do that specific kind of
+work.

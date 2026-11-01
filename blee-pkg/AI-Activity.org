@@ -1,0 +1,132 @@
+#+title: AI Agents Guidance for a Blee Package (blee-pkg)
+
+This file provides always-loaded orientation for Claude Code when working on a blee-pkg.
+It is shared by every blee-pkg (symlinked from the templates tree); what is specific to one
+package belongs in that package's =AI-WorkPlan.org=, =AI-DevStatus.org= and =README.org=.
+
+* Table of Contents     :TOC:
+- [[#what-a-blee-package-is][What a Blee Package Is]]
+- [[#the-common-structure][The Common Structure]]
+- [[#naming][Naming]]
+- [[#how-a-package-is-absorbed-into-blee-bnpa][How a Package Is Absorbed Into Blee (bnpa)]]
+- [[#conventions][Conventions]]
+- [[#available-skills][Available Skills]]
+
+* What a Blee Package Is
+
+Blee (ByStar Libre-Halaal Emacs Environment) is the usage environment of BISOS. A Blee package
+(blee-pkg) is one git repo of elisp under =/bisos/git/bxRepos/blee/<pkg>/= (github
+=bx-blee/<pkg>=), loaded into Blee by straight and adopted by a =bnpa:<pkg>.el= file in
+=/bisos/blee/env3/plus/= (repo =blee/env3=). Examples: =aiplus=, =mtdt-names=, =open-in=,
+=vscode-claude=.
+
+A blee-pkg is usually the Emacs face of something done in Python: the logic lives in a
+bisos-pip package's =.cs= commands and the elisp is a thin layer that runs them, shows their
+output and offers them in menus, panels and dblocks. Do as much as possible in Python and as
+little as possible in elisp.
+
+* The Common Structure
+
+#+begin_example
+<pkg>/
+  README.org                 the package description (readme-authorship)
+  package.recipe             (<pkg> :fetcher github :repo "bx-blee/<pkg>" :files ("*.el"))
+  b:<pkg>::pkg.el            entry point: requires the package's modules, defgroup, provide
+  b:<prefix>.el ...          modules, one per layer or facility
+  b:<prefix>:menu.el         easymenu definitions (…:menu|define, …:menu:plugin|install)
+  dblock-<pkg>.el            org-dblock-write: functions the package provides (optional)
+  panels/<pkg>/_nodeBase_/   the Blee panel: fullUsagePanel-en.org (optional; blee-panel-authorship)
+  images/                    figures used by README.org and panels
+  AI-*.org, CLAUDE.md, .claude/   the AI-Activity files (aiActivity.cs)
+#+end_example
+
+Only =*.el= at the top level is part of the installed package (=package.recipe=, =:files=).
+
+* Naming
+
+- Elisp symbols are prefixed =b:= (Blee). Not =bap:= --- that older prefix is being retired as
+  code moves into blee-pkgs.
+- A module's file name is its feature name: =b:vscode:claude.el= provides =b:vscode:claude=.
+- Inside a name: =:= separates the hierarchy (=b:vscode:claude:magit=), =/= introduces an
+  action (=b:vscode:claude/atPrompt=), =|= a lifecycle step (=…|config=, =…|define=,
+  =…:plugin|install=), =$= a getter, =?= a predicate or flag.
+- Parameters are =<name=, locals =$name=.
+- The package entry point is =b:<pkg>::pkg= (double colon).
+
+* How a Package Is Absorbed Into Blee (bnpa)
+
+Blee Native Package Adoption. Three steps, in =blee/env3=:
+
+1. =plus/bnpa:<pkg>.el=, made from a sibling (e.g. =bnpa:aiplus.el=) with every =aiplus= replaced.
+   Its dblocks (=b:elisp:pkg/usgEnabled?defvar=, =…/fullUpdate=, =…:install/update=,
+   =…:config/main=) take =:pkgAdoptionType "b:npa" :pkgName "<pkg>"=. It defines:
+   - =b:npa:<pkg>:usgEnabled?= --- the adoption switch;
+   - =b:npa:<pkg>:install|update= --- straight: =:local-repo /bisos/git/bxRepos/blee/<pkg>= when
+     =b:g:dev:mode?=, else github =bx-blee/<pkg>=;
+   - =b:npa:<pkg>:config|main= --- =(require 'b:<pkg>::pkg)= plus any setup that must wait for
+     another package (=with-eval-after-load=).
+2. =plus/plus-init.el=: =(require 'bnpa:<pkg>)= and =(b:npa:<pkg>|fullUpdate)=, next to the
+   other =bnpa:= entries.
+3. Restart Blee (or evaluate both forms) and check that the package's features are loaded.
+
+When code moves into a blee-pkg from a =bcpg:<x>Plus.el= (Blee Component Package Grouping, the
+adoption files of third-party packages), remove it from the =bcpg:= file in the same change, so
+that each function is defined once.
+
+* Conventions
+
+- *COMEEGA throughout* (skill =comeega-authorship=): the header chain
+  (=b:elisp:file/copyLeftPlus=, =b:elisp:file/authors=, =b:elisp:file/orgTopControls=), a free-form
+  description in =(orgCmntBegin " … " orgCmntEnd)=, =blee:bxPanel:foldingSection= dividers,
+  =b:elisp:defs/cl-defun= for each function, and =b:elisp:file/provide= / =b:elisp:file/endOf= at the
+  end. Never hand-edit between =;;;#+BEGIN:= and =;;;#+END:= --- change the header and regenerate in
+  Blee (=org-dblock-update-buffer-bx=). Menu files follow the plainer =aiplus= menu style.
+- *Docstrings* are org: =" #+begin_org ** DocStr: … #+end_org "=.
+- *Layers, each usable without those above.* A lower layer never names an upper one: not its
+  functions, not its concepts. When a lower layer needs something only an upper one knows, it
+  declares a hook, a function variable, a setting or an argument, and the upper layer supplies it
+  (blee/vscode-claude: layer 4 asks =b:vscode:claude:baseDir-function=, layer 5 sets it; the
+  workflow command =/bx-confirm-root= calls the =register== function the prompt names). Test: each
+  layer loads and works with only the layers below it.
+- *One elisp layer per CSXU*: =b:<layer>.el= wraps =<layer>.cs= of a bisos-pip package (e.g.
+  =b:vscode.el= over =vscode.cs=, =b:vscode:claude.el= over =vscodeClaude.cs=), so each layer has
+  its own program and its own examples menu; a layer with little elisp may share a CSXU through a
+  second CSU in its csuList (=vscode.cs= lists =vscode_csu= and =vscodeEmacs_csu=).
+- *External commands* run with =call-process= into a named output buffer, from
+  =default-directory= =~/= (so it works from a TRAMP buffer too), through one shared runner per
+  package. A PyCS command that refuses still exits 0: also check its output for =EH_Problem=, and
+  drop the framework's =ALERT:= lines from what is shown.
+- *Menus are built once.* Never rebuild a whole menu from =menu-bar-update-hook=: it runs on
+  nearly every redisplay of the menu bar, and a rebuild there made Blee slow (2026-10-31, the Acts
+  and Apps menus, over a second each). Build in =|install=; make live parts lazy (=:active=,
+  =:visible=, =:selected=, =:filter=); an update hook may only do cheap work.
+- *Testing*: in batch (=emacs-31.1 -Q --batch=, the straight build directory, stubs), and
+  interactively in a *fresh* Blee started for the test, never in the user's (skill
+  =blee-pkg-authorship=). The user's running Blee can be queried read-only with =emacsclient=
+  (skill =bs-blee-emacs-server=); change it only with the user's agreement.
+- *A change usually spans three repos*: the bisos-pip package (the CSXU), the blee-pkg, and
+  =blee/env3= (=bnpa:<pkg>.el=, =plus-init.el=). Commit them in that order, with =Requires:=
+  trailers (=/bx-git-commit-msg=).
+- *README.org* follows the frame of a sibling blee-pkg (=aiplus=): the panel-controls line,
+  Overview, =:TOC:=, Blee and straight installation, the =blee:bxPanel:footer*= blocks --- not the
+  bisos-pip skeleton of =readme-authorship=, whose 105-character limit still applies.
+
+* Available Skills
+
+All BISOS skills come from one shared set, =mother/_skills/=; the table names the ones a blee-pkg
+uses most. The full list is that directory.
+
+| Skill                   | Trigger --- when Claude loads it                                     |
+|-------------------------+----------------------------------------------------------------------|
+| =blee-pkg-authorship=   | creating, adopting, layering, menus, transients, testing a blee-pkg  |
+| =comeega-authorship=    | writing or editing any =.el= file of the package                     |
+| =dblock-authoring=      | a dblock: in the package's =.el= files, or one it provides           |
+| =bs-blee-emacs-server=  | querying or acting in the user's running Blee with =emacsclient=     |
+| =blee-panel-authorship= | the package's =panels/<pkg>/_nodeBase_/fullUsagePanel-en.org=        |
+| =readme-authorship=     | the package's =README.org=                                           |
+| =writing-cs-commands=   | the Python side: =cs.Cmnd= classes the elisp layer runs              |
+| =authoring-skills=      | a new skill that the package's work calls for                        |
+
+# Local Variables:
+# eval: (setq-local toc-org-max-depth 3)
+# End:

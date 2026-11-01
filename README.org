@@ -1,0 +1,56 @@
+#+title: aiTemplates-DE --- The BISOS-Digital-Ecosystem-Skills Layer of AI-Activity Templates
+#+OPTIONS: toc:2
+
+* What This Repo Is
+
+This repo is one of the two inputs of an *assembled AI-Activity templates base*. It holds the
+*BISOS-Digital-Ecosystem-Skills* layer: what Claude Code needs to know to work in the BISOS digital
+ecosystem --- its skills and its activities (per-kind-of-project guidance).
+
+The other input is [[https://github.com/bxexamples/aiTemplates-workFlow][aiTemplates-workFlow]], the
+*BISOS-AI-Workflow* layer. The two are combined into one base,
+[[https://github.com/bxexamples/aiActivityTemplates][aiActivityTemplates]], by =aiActivityAssemble.cs=,
+and projects are set up from that base by =aiActivity.cs=. Both commands come with the engine,
+[[https://github.com/bisos-pip/aiActivity][bisos.aiActivity]], whose README describes the whole model.
+
+A fork for another ecosystem keeps the workflow layer and replaces this one with its own repo of the
+same shape.
+
+* Contents
+
+| Path                     | What it is                                                     |
+|--------------------------+----------------------------------------------------------------|
+| =mother/AI-Activity.org= | The default activity guidance                                  |
+| =mother/AI-Outputs.org=  | The cross-project ledger of findings (a link, on BISOS hosts)  |
+| =mother/_skills/=        | The ecosystem skills, one shared set (28)                      |
+| =<activity>/=            | One per activity: =AI-Activity.org=, optional seeds, =_skills= |
+
+Activities: =astro-site=, =bisos-core=, =bisos-pip=, =blee-panels=, =blee-pkg=, =graphviz-pcs=, =lcnt=,
+=pycs=, =sbom+cap=, =xu-single=.
+
+* Using It
+
+Clone the three repos side by side and assemble the base:
+
+#+begin_src bash
+git clone https://github.com/bxexamples/aiTemplates-workFlow
+git clone https://github.com/bxexamples/aiTemplates-DE
+git clone https://github.com/bxexamples/aiActivityTemplates
+aiActivityAssemble.cs -i assemblyCheck --base=./aiActivityTemplates
+#+end_src
+
+After adding, renaming or deleting a file here, run =aiActivityAssemble.cs -i assemblyUpdate= on the
+base; edits to existing files take effect at once. A path present in both inputs is refused.
+
+* Root Files
+
+=AI-*.org=, =CLAUDE.md=, =.claude/= and =.aiActivity.cs/= at this repo's root are its own
+AI-collaboration setup. The assembler ignores an input's top-level files and dot-directories, so none
+of them reach the base.
+
+* Support
+
+For support, criticism, comments and questions; please contact the
+author/maintainer\\
+[[http://mohsen.1.banan.byname.net][Mohsen Banan]] at:
+[[http://mohsen.1.banan.byname.net/contact]]
