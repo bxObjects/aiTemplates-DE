@@ -31,10 +31,13 @@ That content is generated. Author only:
 If a dblock body looks wrong, update the `####+BEGIN:` header parameters or
 regenerate — don't patch the generated content.
 
-**Regeneration.** Inside Blee/Emacs: `M-x org-dblock-update`. Outside Blee:
-`py-dblock.cs updateDblocks <file>` from `bisos.pyDblock` (pure Python, no
-Emacs required — used by `aiActivity.cs initiate` and by `pypiProc.sh` for
-`setup.py`, `pyproject.toml`, etc.).
+**Regeneration.** Inside Blee/Emacs: `M-x org-dblock-update` (or "Update Buf
+Dblocks"). From a shell, through a running Blee: `bx-dblock -p emacsSocket=<socket>
+-i dblockUpdateFiles <file>` --- every language, every dblock; Claude uses it on a
+fresh Blee of its own, or on the user's with agreement (`dblock-authoring`,
+`bs-blee-emacs-server`). Without Emacs: `py-dblock.cs updateDblocks <file>` from
+`bisos.pyDblock`, which expands only `b:ai:file/particulars` (used by
+`aiActivity.cs initiate`).
 
 ## Per-language comment / docstring / dblock syntax
 

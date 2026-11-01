@@ -83,8 +83,11 @@ The header dblock parameters:
 Update the dblock header when you change parameters/args; Blee/Emacs
 regenerates the body when the file is opened. `py-dblock.cs` (from
 `bisos.pyDblock`) does *not* expand `classHead` (it reports "DBLOCK-UPDATED"
-and changes nothing) --- see the `dblock-authoring` skill. Without Blee, write the
-command as a plain class (as below) and leave adding the dblock to the developer.
+and changes nothing). Write the header line and the body after `####+END:`, then
+have a Blee fill the head: `bx-dblock -p emacsSocket=<socket> -i dblockUpdateFiles
+<file>`, in a fresh Blee of your own or, with agreement, the user's (see the
+`dblock-authoring` skill). With no Blee at all, write the head out in full by copying a
+sibling command's, and say so.
 
 ## How PyCS finds a command --- the dispatch rule
 
@@ -259,6 +262,12 @@ paths in the argument — not absolute paths constructed from `pathlib.Path.cwd(
 - **Determine target directory** (repo vs. cwd): follow the existing
   pattern in `initiate` — subprocess to `git rev-parse --show-toplevel` for
   `root=repo`, else `pathlib.Path.cwd()`.
+
+- **Resolve a program for use outside this shell** (a path written into a VS Code task, a
+  Claude Code hook, a config file): `shutil.which()` against the absolute `PATH` entries only.
+  BISOS `PATH`s carry `.`, so a plain `which` run from a `py3/bin/` returns the repo's copy and
+  the result depends on the current directory. Also name `sys.executable` rather than a
+  `#!/bin/env python` script: a desktop-started program does not have the BISOS venv on `PATH`.
 
 ## What NOT to do
 

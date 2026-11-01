@@ -40,12 +40,24 @@ the generated content.
 dblockUpdateFiles <file>` (what `pypiProc.sh` calls for `setup.py`) needs a
 running Emacs server and fails without one. Loading
 `/bisos/git/bxRepos/blee/env3/dblocks/dblock-comeega-python.el` in `emacs --batch -Q`
-does not work either (it needs much more of Blee). So without Blee: author the
-dblock *header* or the spec it reads (e.g. the elisp `csuList`), leave the body,
-and ask the developer to regenerate. *With* the user's running Blee, Claude can
-regenerate them itself, with the user's agreement, through `bx-dblock` and the
-Emacs server: see the `bs-blee-emacs-server` skill (socket, `G_emacsServerPid`,
-the global dblock regexp, side effects).
+does not work either (it needs much more of Blee).
+
+**So regenerate through a Blee, not by hand.** Author the dblock *header* or the spec
+it reads (e.g. the elisp `csuList`), then have Blee fill the body:
+
+```bash
+bx-dblock -p emacsSocket=<socket> -i dblockUpdateFiles /bxRepos/<repo>/<file>
+```
+
+- *A fresh Blee of your own* (started and driven by its socket): no agreement needed;
+  use it for new files, new dblocks and anything unproven.
+- *The user's Blee* (socket from the prompt's `emacs=` or the partner file): with the
+  user's agreement; it refuses a file with unsaved edits there.
+
+Read the printed result (`updated`, `updated, N dblock errors`, `refused`, `error`) and
+then `git diff` --- every dblock of the file is regenerated. Details, the debugger
+trap and the fresh-Blee recipe: the `bs-blee-emacs-server` skill. Without any Blee,
+leave the body and ask the developer to regenerate.
 
 ## Dblock definitions and where they live
 

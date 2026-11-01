@@ -7,9 +7,9 @@ This repo is one of the two inputs of an *assembled AI-Activity templates base*.
 *BISOS-Digital-Ecosystem-Skills* layer: what Claude Code needs to know to work in the BISOS digital
 ecosystem --- its skills and its activities (per-kind-of-project guidance).
 
-The other input is [[https://github.com/bxexamples/aiTemplates-workFlow][aiTemplates-workFlow]], the
+The other input is [[https://github.com/bxObjects/aiTemplates-workFlow][aiTemplates-workFlow]], the
 *BISOS-AI-Workflow* layer. The two are combined into one base,
-[[https://github.com/bxexamples/aiActivityTemplates][aiActivityTemplates]], by =aiActivityAssemble.cs=,
+[[https://github.com/bxObjects/aiActivityTemplates][aiActivityTemplates]], by =aiActivityAssemble.cs=,
 and projects are set up from that base by =aiActivity.cs=. Both commands come with the engine,
 [[https://github.com/bisos-pip/aiActivity][bisos.aiActivity]], whose README describes the whole model.
 
@@ -22,20 +22,55 @@ same shape.
 |--------------------------+----------------------------------------------------------------|
 | =mother/AI-Activity.org= | The default activity guidance                                  |
 | =mother/AI-Outputs.org=  | The cross-project ledger of findings (a link, on BISOS hosts)  |
-| =mother/_skills/=        | The ecosystem skills, one shared set (28)                      |
+| =mother/_skills/=        | The ecosystem skills, one shared set                           |
 | =<activity>/=            | One per activity: =AI-Activity.org=, optional seeds, =_skills= |
 
-Activities: =astro-site=, =bisos-core=, =bisos-pip=, =blee-panels=, =blee-pkg=, =graphviz-pcs=, =lcnt=,
-=pycs=, =sbom+cap=, =xu-single=.
+* Activities
+
+What an AI-Activity is --- a kind of work, defined by its orientation (=AI-Activity.org=), its skills
+and the workflow it shares with every other activity --- is described by the engine, in
+[[https://github.com/bisos-pip/aiActivity#the-concept-and-model-of-an-ai-activity][The Concept and Model of an AI-Activity]].
+These are the BISOS / Blee / ByStar ones. A project takes one with
+=aiActivity.cs -i initiate --activity=<name>= (or =-i initiateSub= inside another).
+
+| Activity           | The kind of work                                                        |
+|--------------------+-------------------------------------------------------------------------|
+| =mother=           | the baseline: ByStar, BISOS, Blee, COMEEGA; the fallback of every other |
+| =bisos-pip=        | a bisos-pip PyCS package (Python, PyPI)                                 |
+| =pycs=             | PyCS packages across bisos-pip and bisos-core (a shorter =bisos-pip=)   |
+| =xu-single=        | a single-XU PyCS script                                                 |
+| =sbom+cap=         | BISOS-SBOMs and BISOS-Capabilities                                      |
+| =bisos-core=       | a bisos-core repo                                                       |
+| =blee-pkg=         | a Blee (Emacs) package                                                  |
+| =blee-panels=      | Blee panels                                                             |
+| =astro-site=       | a BISOS static web site built with Astro                                |
+| =lcnt=             | an LCNT (Libre CoNtenT) document, LaTeX                                 |
+| =lcnt-libreoffice= | LibreOffice Draw figures, for READMEs and LCNT documents                |
+| =graphviz-pcs=     | graphviz figures as =-graphviz.pcs= scripts                             |
+
+Each row is a directory here; its =AI-Activity.org= is the full description.
+
+* Skills
+
+The skills are one shared set, =mother/_skills/<name>/SKILL.md=: BISOS work crosses activities, and
+the skills lean on each other, so every project sees all of them (each activity's =_skills= is a
+link to mother's). Claude Code loads a skill when a task matches its description. A skill still has a
+home activity, the one it belongs to; the shared ones (=comeega-authorship=, =readme-authorship=, ...)
+serve many. How to write one: the =authoring-skills= skill.
+
+[[https://raw.githubusercontent.com/bisos-pip/aiActivity/main/py3/images/aiEcosystemTree.png]]
+
+The tree groups the skills by area; a dotted arrow means "load the target skill first". It is drawn,
+for now, in the engine's repo (=py3/images/aiCommandsSkillsTrees-graphviz.pcs=, =aiEcosystemTree=).
 
 * Using It
 
 Clone the three repos side by side and assemble the base:
 
 #+begin_src bash
-git clone https://github.com/bxexamples/aiTemplates-workFlow
-git clone https://github.com/bxexamples/aiTemplates-DE
-git clone https://github.com/bxexamples/aiActivityTemplates
+git clone https://github.com/bxObjects/aiTemplates-workFlow
+git clone https://github.com/bxObjects/aiTemplates-DE
+git clone https://github.com/bxObjects/aiActivityTemplates
 aiActivityAssemble.cs -i assemblyCheck --base=./aiActivityTemplates
 #+end_src
 

@@ -10,6 +10,9 @@
 #   Templates: /bisos/apps/defaults/ai-templates
 #   Command:   /bisos/venv/py3/devbin/aiActivity.cs -i initiate --activity=aiActivity --templates=/bisos/apps/defaults/ai-templates
 
+####+BEGIN: b:ai:workflow/driver
+####+END:
+
 ####+BEGIN: b:ai:file/particulars
 * AI Working Context
   Working Directory: /bisos/git/auth/bxRepos/bxexamples/aiTemplates-DE
@@ -89,6 +92,8 @@ PROPERTIES drawer (=ORIGIN= ...) on its example TODO, Context Confirmation as a 
 =org-log-done= in its local variables. Compare with =aiTemplates-workFlow/mother/AI-WorkPlan.org=.
 Also check =bisos-core/AI-DevStatus.org= and =blee-panels/AI-DevStatus.org= against the mother seed.
 ----- Results: ------
+2026-11-01: =bisos-core/AI-WorkPlan.org= deleted as a leftover (Mohsen), so bisos-core projects
+get the mother seed's WorkPlan; its part of this TODO is moot. The AI-DevStatus checks remain.
 ** -
 
 * Stage 2: Copy ../aiTemplates-DE to /bxRepos/bxObjects/ and move ../aiTemplates-workFlow to bxRepos/bxObjects and move ../aiActivityTemplates/ to bxRepos/bxObjects
@@ -110,11 +115,90 @@ When copying, the history of all three repos should be transfered to /bxRepos/bx
 :FOUND: <2026-10-20 Tue>
 :END:
 ----- Results: ------
+2026-11-01 (Claude, with Mohsen). Decided: same names under bxObjects (no bro_ prefix); new histories
+instead of a transfer (nothing of value in the old ones, and they held words to be kept out of these
+repos); the frozen bxexamples/aiTemplates-DE copy deferred --- other ecosystems fork this one meanwhile.
+- Before the move: pending work committed by the walk (this repo 2d96702, aiTemplates-workFlow 07a1a93,
+  aiActivityTemplates 80c387a). Mohsen bundled the old repos (elsewhere), created the three bxObjects
+  repos and copied the working trees in (one commit each, "Now at bxObjects.").
+- Scanned the three new repos (every object, refs, reflogs, working trees, names, link targets) for
+  the three words Mohsen listed (case ignored): none (a planted control was found).
+- Repointed bisos/defaults/ai-templates (so /bisos/apps/defaults/ai-templates) to
+  bxObjects/aiActivityTemplates: assemblyCheck IN SYNC, 83 links; project links resolve again.
+- Current-state references moved to bxObjects: the three READMEs (GitHub URLs, clone lines),
+  AI-WORKFLOW.org, aiActivity/AI-Activity.org, bx-ai-commands-authorship, the AI-DevStatus files (here,
+  aiTemplates-workFlow, bisos/defaults, bisos-pip/aiActivity), aiActivity's README, README-PyPi,
+  aiActivityAssemble.cs examples and the aiActivityAssembleFlow figure (re-rendered). History (Results,
+  archives, announcements, provenance comments) left as written.
+- bx-session-verify and bx-git-uncommitted-list say "the user's editor", not Blee (layer-1 rule).
+- Not done: the b:ai:file/particulars dblock bodies of the AI-* files still show bxexamples paths
+  (regenerate in Blee); the old bxexamples GitHub repos (Mohsen's to delete).
 
 ** -
 
 
 
+
+
+* Stage 3: This Repo Documents Its Activities and Skills
+
+<<Stage 3>>
+
+Goal (Mohsen, 2026-11-01): what an AI-Activity is, and the workflow, stay documented by the engine
+(bisos.aiActivity, layer 1: the workflow is intertwined with the mechanism); the activities and skills
+of this ecosystem are documented here, in README.org (layer 0). With many more activities and skills
+to come, the inventory is to be generated from the skills themselves, not kept by hand.
+
+* Stage 3 TODOs
+** +
+** TODO [#A] <<3.1>> README.org: Activities and Skills; the definition in the engine's README :aiAndMe:
+:PROPERTIES:
+:ORIGIN: Mohsen
+:IMPORTANCE: Medium
+:REPO: this
+:BASE: this
+:FOUND: <2026-11-01 Sun>
+:END:
+----- Results: ------
+2026-11-01 (Claude). bisos.aiActivity README, "The Concept and Model of an AI-Activity", rewritten:
+a kind of work written down; defined by its orientation, its skills and the shared workflow; a kind
+(a templates directory) and its instances (activity dirs); nesting (root and here); engine-neutral;
+why it compounds; a pointer here. Its aiTemplates-DE section now points here instead of showing the
+skills tree. This README: an Activities section (the twelve, one line each) and a Skills section (one
+shared set, home activities, the tree, for now embedded from the engine's repo).
+
+** TODO [#A] <<3.2>> Skills declare their home activity and prerequisites; generate the inventory :ai:
+:PROPERTIES:
+:ORIGIN: Mohsen
+:IMPORTANCE: Medium
+:REPO: this
+:BASE: this
+:FOUND: <2026-11-01 Sun>
+:END:
+Decided (Mohsen, 2026-11-01): in each SKILL.md's frontmatter (option A), e.g.
+=activity: lcnt= and =requires: [dblock-authoring]=; not a separate index, not in AI-Activity.org.
+Not started; waiting on Mohsen.
+- First verify that Claude Code ignores frontmatter keys it does not know.
+- A script here reads the frontmatter: the README's skills table (name, activity, first sentence),
+  the skills tree (moved here from aiActivity's aiCommandsSkillsTrees-graphviz.pcs), a check for a
+  skill without a home.
+- authoring-skills: "add it to the figure" becomes "set activity: and requires:, regenerate".
+- The five lcnt-* skills (2026-10-23) and libreoffice-draw-authoring then appear by themselves.
+----- Results: ------
+
+** TODO [#B] <<3.3>> Fix the stale titles of bisos-core, blee-panels and pycs :ai:
+:PROPERTIES:
+:ORIGIN: Claude
+:IMPORTANCE: Low
+:REPO: this
+:BASE: this
+:FOUND: <2026-11-01 Sun>
+:END:
+- bisos-core and blee-panels are titled "AI Agents Guidance for bisos.newPkg"; pycs has bisos-pip's
+  title, and is a shorter variant of bisos-pip (same bisos-capabilites.org): keep both, or fold one?
+----- Results: ------
+
+** -
 
 # Local Variables:
 # eval: (setq-local toc-org-max-depth 4)

@@ -27,7 +27,7 @@ This file is maintained by Claude. Updates are typically triggered by the
 As of 2026-10-20: this repo is *BISOS-Digital-Ecosystem-Skills*, one of the two inputs of an assembled
 templates base (the engine =bisos-pip/aiActivity=, WorkPlan Stage 18). The other input is
 =aiTemplates-workFlow= (BISOS-AI-Workflow), which also holds the plan inherited from the old BISOS base.
-The BISOS base is =bxexamples/aiActivityTemplates=; =/bisos/apps/defaults/ai-templates= links to it.
+The BISOS base is =bxObjects/aiActivityTemplates=; =/bisos/apps/defaults/ai-templates= links to it.
 Since 2026-10-20 this repo is an aiActivity project itself (WorkPlan 1.1). Open: 1.2 (the
 =bisos-core= seed conventions).
 
@@ -68,7 +68,7 @@ several READMEs, one owner per table. =graphviz-authoring=: the vanishing cluste
 * What Works
 
 - After adding, renaming or deleting a file here, run
-  =aiActivityAssemble.cs -i assemblyUpdate --base=/bisos/git/bxRepos/bxexamples/aiActivityTemplates=;
+  =aiActivityAssemble.cs -i assemblyUpdate --base=/bisos/apps/defaults/ai-templates=;
   edits to existing files are live at once. =IN SYNC= after 1.1.
 - 2026-10-23: added 5 =lcnt-*= skills (new files), then ran
   =aiActivityAssemble.cs -i assemblyUpdate --base=/bisos/apps/defaults/ai-templates=

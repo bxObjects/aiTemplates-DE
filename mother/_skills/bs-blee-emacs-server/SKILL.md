@@ -1,6 +1,6 @@
 ---
 name: bs-blee-emacs-server
-description: Use when Claude needs the user's running Blee/Emacs --- to read its state (a variable, whether a hook or a reloaded function is in place, *Messages*), to check a Blee/magit setting, or to regenerate COMEEGA dblocks that only Blee can expand (`b:py3:cs:cmnd/classHead`, `b:py3:cs:framework/csuListImportPlus`, `setup.py`'s `b:py3:pypi:setup/*`) with `/bisos/blee/bin/bx-dblock`. Also when `emacsclient` says "can't find socket", or `bx-dblock` reports success but changes nothing. Covers getting the socket path from the user, `emacsclient -s`, read-only versus state-changing use, running `bx-dblock` with `G_emacsServerPid`, its side effects, and the pitfalls (the global dblock regexp, stale sockets, several Emacs instances, reload without `config|main`), and authoring new Blee elisp as COMEEGA `b:elisp:defs/*` dblocks. Also when a Blee is slow (diagnosing it read-only: GC counts, `menu-bar-update-hook`, timing hook functions, gcmh) or when elisp must be tried interactively without touching the user's Blee (a fresh Blee started for the test).
+description: Use when Claude needs the user's running Blee/Emacs --- to read its state (a variable, whether a hook or a reloaded function is in place, *Messages*), to check a Blee/magit setting, or to regenerate COMEEGA dblocks that only Blee can expand (`b:py3:cs:cmnd/classHead`, `b:py3:cs:framework/csuListImportPlus`, `setup.py`'s `b:py3:pypi:setup/*`) with `/bisos/blee/bin/bx-dblock -p emacsSocket=<socket>`. Also when `emacsclient` says "can't find socket", or `bx-dblock` reports success but changes nothing. Covers getting the socket path (the user, the prompt's `emacs=`, the partner file), `emacsclient -s`, read-only versus state-changing use, running `bx-dblock -p emacsSocket=` and reading its result, and the pitfalls (Blee's debugger holding every client in `*Backtrace*`, the global dblock regexp, stale sockets, several Emacs instances, reload without `config|main`), and authoring new Blee elisp as COMEEGA `b:elisp:defs/*` dblocks. Also when a Blee is slow (diagnosing it read-only: GC counts, `menu-bar-update-hook`, timing hook functions, gcmh) or when elisp must be tried interactively without touching the user's Blee (a fresh Blee started for the test).
 ---
 
 # Using the User's Running Blee (emacsclient)
@@ -97,29 +97,38 @@ git -C <repo> diff -- <file>
 
 If the buffer is *modified*, stop and ask: the user has unsaved work there.
 
-*The file is not open:* `bx-dblock` (= `F7 d b` from a shell) finds the Emacs by the pid in
-`G_emacsServerPid` (socket `*<pid>*` under `/run/user/<uid>/emacs/`, then `/tmp/emacs<uid>/`, then
-one named `server`); the value Claude's shell inherited is usually stale, so pass the pid from the
-socket name. Set the regexp first, from a buffer in the file's mode, as above.
+*Any file, open or not --- the usual way:* `bx-dblock` with the socket named (since 2026-11-01;
+blee/vscode-claude WorkPlan 6.2). Without `-p emacsSocket=` it looks for the Emacs *around* the
+shell, which Claude's shell is not inside: it fails, or silently uses another Emacs.
 
 ```bash
-G_emacsServerPid=1522377 /bisos/blee/bin/bx-dblock -i dblockUpdateFiles <file>
+bx-dblock -p emacsSocket=$S -i dblockUpdateFiles /bxRepos/<repo>/<file> ...   # path or socket name
+git -C <repo> diff -- <file>
 ```
 
-`org-dblock-update-file-bx` (what `bx-dblock` calls) visits the file, updates, `save-buffer`,
-`kill-buffer` --- so it would kill a buffer the user has open --- and turns
-`global-auto-revert-mode` on and then *off*: read it before, restore it after with
-`(global-auto-revert-mode 1)`.
+It calls `org-dblock-update-file-bx` (env3 `legacy/bx-dblock-lib.el`), which prints one result per
+file:
+- `"updated: <file>"`; `"updated, N dblock errors (see *Messages*): <file>"` when org logged a
+  failing dblock and went on;
+- `"refused: buffer X has unsaved edits"` or `"... is out of date with its file"` --- stop and tell
+  the user;
+- `"error: <file>: <message>"` --- nothing was saved; a buffer it opened is dropped.
 
-Either way:
+A buffer the user already had open is updated in place and left open; one it opened is closed.
+Called from outside Emacs it binds `debug-on-error` and `debug-on-signal` to nil (see Pitfalls).
+For bash files it falls back from the old file-local `major-mode: shellscript-mode` to `sh-mode`.
+
+- *Pass the path to write*: the "This File" lines show the path given, so give the =/bxRepos/...=
+  form the file already uses, not the true path.
 - *All* dblocks of the file are updated, not only yours: stale file-level blocks (proclamations,
   authors, top controls, folding sections, package-adoption defuns) are refreshed to the current
-  templates. Review the whole diff and say so to the user.
-- Errors inside the update are swallowed and the exit status is 0: only `git diff` tells.
+  templates, and a =.cs= gets a new =csInfo['version']= stamp. Review the whole diff, say so, and
+  restore a stamp-only change if the user did not ask for it.
+- Test first in a fresh Blee (section 6) when the file or the dblock is new to you.
 
-Verified 2026-10-27: `bx-dblock` on a scratch copy of `containerProc-seed.cs` (first run found no
-block --- the regexp was the elisp one --- the second, after setting it, regenerated a deleted
-line); and the open-buffer form on `bcpg:magitPlus.el`.
+Verified 2026-11-01: in fresh Blees, on bash (`figProc.sh`), org (an AI-WorkPlan) and Python
+(`vscodeClaude.cs`), refusals, an error, an open buffer; in the user's Blee on an AI-WorkPlan and an
+elisp file, both open there.
 
 ## 5. Authoring Blee elisp the COMEEGA way
 
@@ -167,6 +176,12 @@ timeout 10 emacsclient -s $S --eval '(run-at-time 0.2 nil (function kill-emacs))
   such setup at startup, or undo it.
 - Anything that acts on another program (VS Code, the clipboard, X focus) still needs the user
   watching.
+- A fresh Blee loads env3 and the blee-pkgs from disk: a changed =bx-dblock-lib.el= is live in it
+  without a =load-file=; the user's Blee needs the user's =load-file=.
+- *If it stops answering* (every `emacsclient` times out), look at it:
+  `env DISPLAY=:1.0 import -window <id> shot.png` (`xdotool search --pid <pid>` for the id) and read
+  the image. A `*Backtrace*` frame means its debugger holds it; keys sent with `xdotool` may not
+  reach it under VNC. It is yours: `kill <pid>`, fix the cause, start another.
 
 ## 7. Diagnose a slow Blee, read-only
 
@@ -201,6 +216,14 @@ timeout 60 emacsclient -s $S --eval '(progn (require (quote benchmark))
 
 ## Pitfalls
 
+- *Blee's debugger holds every client.* Blee runs with `debug-on-error` set to t: an error inside an
+  `--eval` opens `*Backtrace*`, a recursive edit, and that `emacsclient` and every later one wait
+  until someone presses `q` in that Emacs. Wrap anything that may fail:
+  `(let ((debug-on-error nil) (debug-on-signal nil)) (condition-case e ... (error (list 'ERR e))))`.
+  Org's `org-map-dblocks` then only logs a failing dblock ("Error during update of dynamic block").
+- *A minibuffer open in the user's Blee* shows as `(recursion-depth)` 1: the user's own prompt; it
+  does not block `emacsclient`. Do not answer it.
+
 - *A file reload does not re-run `bcpg:<pkg>:config|main`*: the `setq` / `add-hook` forms of a Blee
   package adoption live there. After the user reloads such a file, they (or you, when asked) run
   `(bcpg:<pkg>:config|main)` once; `add-hook` does not duplicate.
@@ -212,8 +235,8 @@ timeout 60 emacsclient -s $S --eval '(progn (require (quote benchmark))
 
 ## References
 
-- `/bisos/blee/bin/bx-dblock`, `/bisos/blee/bin/bleeLib.sh` (`vis_thisEmacsClient`,
-  `vis_emacsServerSocketFromEnv`).
+- `/bisos/blee/bin/bx-dblock` (`-p emacsSocket=`), `/bisos/blee/bin/bleeLib.sh`
+  (`vis_thisEmacsClient`, `vis_emacsServerSocketFromEnv`, `vis_emacsClientMatching`).
 - `/bisos/blee/env3/legacy/bx-dblock-lib.el` (`org-dblock-update-file-bx`,
   `org-dblock-update-buffer-bx`, `org-dblock-mode-comment-regexp-bx`);
   `/bisos/git/bxRepos/blee/poly-dblock/poly-dblock.el` (the mode hooks).

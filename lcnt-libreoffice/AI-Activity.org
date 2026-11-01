@@ -1,21 +1,96 @@
-#+title: AI Agents Guidance for LCNT (Libre CoNTent) LibreOffice
+#+title: AI Agents Guidance for LCNT (Libre CoNTent) LibreOffice Figures
 
-This file provides always-loaded orientation for Claude Code when working libreoffice
-It is shared by every lcnt-libreoffice (symlinked from the templates tree); what is specific to one
-package belongs in that package's =AI-WorkPlan.org=, =AI-DevStatus.org= and =README.org=.
+This file provides always-loaded orientation for Claude Code when working on a directory of
+LibreOffice Draw figures (=.odg=). It is shared by every lcnt-libreoffice activity (symlinked from the
+templates tree); what is specific to one figure directory belongs in that directory's
+=AI-WorkPlan.org= and =AI-DevStatus.org=. How to read, edit, generate and render an =.odg= is in the
+=libreoffice-draw-authoring= skill: load it before changing a figure.
 
 * Table of Contents     :TOC:
-- [[#the-common-structure][The Common Structure]]
+- [[#what-an-lcnt-libreoffice-directory-is][What an lcnt-libreoffice Directory Is]]
+- [[#the-files-of-a-figure][The Files of a Figure]]
+- [[#figprocsh][figProc.sh]]
+- [[#conventions][Conventions]]
+- [[#working-rules-for-claude][Working Rules for Claude]]
+- [[#draw-or-graphviz][Draw or graphviz]]
 
-* The Common Structure
+* What an lcnt-libreoffice Directory Is
+
+A directory of hand-composed figures, each a LibreOffice Draw document (=X.odg=) with the formats
+made from it beside it. It is usually a sub of a larger repo (installed by =aiActivity.cs -i
+initiateSub --activity=lcnt-libreoffice=), e.g. =images/LibreOffice/= of a package whose README shows
+the figures, or the =figures/= of an LCNT document. The figures are the product: a README or panel
+embeds the =.png=, a LaTeX document includes the =.pdf= (or =.ps=).
+
+The =.odg= is the source. Everything else is derived from it, or is metadata for LaTeX.
+
+* The Files of a Figure
 
 #+begin_example
-<pkg>/
-  README.org                 the package description (readme-authorship)
+X.odg          the source (LibreOffice Draw)
+X.png          for READMEs and panels          } made from X.odg by figProc.sh
+X.pdf, X.ps    for LaTeX                        }
+X.title        one line: the figure's title     } metadata for LCNT LaTeX documents:
+X.caption      the caption                      } read by LCNT's LaTeX dblocks; created by
+X.style        e.g. "plain"                     } figProc.sh -i genStartFigInfoFiles
+X.tex          a figure environment             } created by figProc.sh -i genFigTex,
+X_pres.tex     the same, sized for slides       } \includegraphics{figures/X}
+X.orig_odg     (sometimes) a starting point kept for reference
 #+end_example
 
-Only =*.el= at the top level is part of the installed package (=package.recipe=, =:files=).
+=.title=, =.caption=, =.style= and the two =.tex= files are there so the figure can be used in an LCNT
+(LaTeX) document; they are used by various dblocks of LaTeX LCNT. A figure used only in a README
+needs nothing beyond =X.odg= and =X.png=, but keep the others: they are cheap and the figure may be
+used in a document later. Do not delete or "fix" them unasked.
 
+* figProc.sh
+
+Each directory has an executable =figProc.sh=, a thin seed over =/bisos/core/lcnt/bin/seedFigProc.sh=.
+Its =bx:dblock:lcnt:bash:figsList= dblock lists the =.odg= files (regenerated in Blee; do not edit the
+body). Bare =./figProc.sh= prints the examples menu. The verbs that matter:
+
+| Verb                                     | Does                                                       |
+|------------------------------------------+------------------------------------------------------------|
+| =-i odgConvert X.odg=                    | =.png=, =.pdf=, then =.ps= (=pdf2ps=): use after each edit |
+| =-i odgToPng X.odg=, =-i odgToPdf X.odg= | one format (=libreoffice --headless --convert-to=)         |
+| =-i genStartFigInfoFiles X=              | =.title=, =.caption=, =.style= (skips existing ones)       |
+| =-i genFigTex X=                         | =X.tex=, =X_pres.tex= (skips existing ones)                |
+| =-i build X.odg=                         | the full LCNT build, through =lcnLcntInputProc.sh=         |
+
+=-i build= needs the LCNT environment (=frameMakerHost= among others) and stops with an unbound
+variable where that is not set up; =-i odgConvert= works anywhere LibreOffice is installed.
+
+* Conventions
+
+- *Page*: 16x9, 40.64 x 22.86 cm (16 x 9 in), landscape, for presentation use.
+- *The red frame*: a red (=#f10d0c=), heavy rectangle inset about 1 cm from the page edge. It marks
+  the presentation area. Keep it when editing; nothing goes outside it.
+- *Fonts*: Liberation Sans (or what the document already declares); text sizes 10 to 26 pt.
+- *Colour carries grouping*: things of one kind share a fill (e.g. layers of one family), with a
+  darker stroke of the same hue. Read what a figure's colours mean before adding a shape.
+- *Arrows are content*: a two-headed arrow is a pairing, a one-headed one a direction (built from,
+  calls); a short italic label says what crosses it.
+
+* Working Rules for Claude
+
+- *Look at the figure first.* Render it (=figProc.sh -i odgToPng=, or the =.png= already there) and
+  read the image before proposing changes; say what you understand the figure to communicate.
+- *The user may edit in Draw.* Before writing an =.odg=, check that it has not changed since you last
+  produced it (=cmp= against your copy). If it has, edit the new one in place; never regenerate over
+  the user's edits.
+- *Keep the starting point.* When an =.odg= is rebuilt from an original, keep the original (as
+  =X.orig_odg=, or as the user says).
+- *Render and look after every change*, then regenerate all formats (=figProc.sh -i odgConvert=)
+  before handing it over. A README that embeds =X.png= shows the new figure only once it is rendered.
+- *Prose follows the figure.* A README section that describes a figure is part of the change.
+
+* Draw or graphviz
+
+| Use Draw (this activity) when                     | Use graphviz (=graphviz-pcs=) when               |
+|---------------------------------------------------+--------------------------------------------------|
+| the layout is the message (columns, bands, place) | the structure is the message (nodes, edges)      |
+| the figure is for slides as well as a README      | the figure is regenerated as the code changes    |
+| the user wants to edit it by hand                 | the figure is generated and never edited by hand |
 
 # Local Variables:
 # eval: (setq-local toc-org-max-depth 3)

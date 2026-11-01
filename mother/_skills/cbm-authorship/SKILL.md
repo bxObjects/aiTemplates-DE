@@ -324,6 +324,28 @@ Steps (in order):
 7. **If the leaf will be walked**, ensure a `ftoBranchProc.spcs` exists at
    an ancestor directory. See `walkable-tree-planting` skill.
 
+## A non-service capability (`induct`)
+
+For an install with no units (a desktop tool, a per-user setup), the CBS is
+`cba_seed.setup(seedType="induct", sbom=..., assemble=...)` plus
+`cba_sysd_seed.plantWithWhich("cba-sysd.cs")`, and no `cba_sysd_seed.setup(...)`.
+`cbs_materialize` then runs `<sbom> -i sbom_fullUpdate` and `<assemble> -i fullUpdate`,
+and skips the units because the type is not `systemd`. The leaf goes under
+`collective/induct/<name>/`.
+
+- Leave `materialize=None`: a value there is only *printed* by `cbs_materialize`
+  ("We should execute that function or script."), and the sbom and the assemble are skipped.
+- Per-user steps (`~/.config`, `~/.claude`, VS Code extensions) belong in the assemble,
+  which refuses root; the sbom uses `sudo` itself for apt. Materialize as that user.
+- Give the assemble a read-only `fullCheck` beside `fullUpdate`: it is how a run (or a
+  user) sees what materializing would change.
+- `cba_assemble.cbaAssemble.assemblerType` is read by nothing; leave it out.
+- The `collective` walk reaches `hereWeb` only so far: an `induct` leaf is materialized
+  from the leaf.
+
+Exemplar (2026-11-01): `bisos-pip/vscodeClaude/py3/bin/vscodeClaude-cbs.pcs`,
+`vscodeClaude-assemble.cs`, leaf `collective/induct/vscodeClaude/`.
+
 ## What NOT to do
 
 - Do NOT include `cba_seed.setup(...)` or `cba_sysd_seed.setup(...)` in a
