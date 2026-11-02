@@ -1,0 +1,119 @@
+#+title: AI Agents Guidance for Updates to The BISOS Genesis Process
+
+This file provides always-loaded orientation for Claude Code when working on the BISOS genesis
+chain: =raw-bisos.sh= in =bxGenesis/start=, which recreates the whole of Raw-BISOS on a fresh Debian.
+
+*A singleton.* Most AI-Activities are one kind with many instances. This one has exactly one: there
+is one Raw-BISOS chain, in one repo. So, unlike other activities, this file also holds what is
+specific to that one instance (its chain, its files, its procedures). The current effort and its
+findings stay in the repo's =AI-WorkPlan.org= and =AI-DevStatus.org=.
+
+* Table of Contents     :TOC:
+- [[#the-chain][The Chain]]
+- [[#absorbing-a-change-into-the-chain][Absorbing a Change Into the Chain]]
+- [[#checking-a-platform-against-the-chain][Checking a Platform Against the Chain]]
+- [[#rules][Rules]]
+- [[#available-skills][Available Skills]]
+
+* The Chain
+
+The bootstrap model is documented in the Blee panel
+=/bisos/panels/bisos-core/bootstrap/bootstrapModel/_nodeBase_/fullUsagePanel-en.org= (truename
+=blee-binders/bisos-core/bootstrap/bootstrapModel/=) and its sibling panels under
+=bisos-core/bootstrap/= (=sysPlatformProvision=, =siteGenesis=, =sysChar=, ...). Read it before
+changing the chain. Four stages, each running from its own place:
+
+| Stage | Program                | Runs from                   | Repo                   |
+|-------+------------------------+-----------------------------+------------------------|
+| 0     | =bisos.provision=      | pipx (=~/.local/bin=)       | bisos-pip/provision    |
+| 1     | =provisionBisos.sh=    | the pipx install            | bisos-pip/provision    |
+| 2     | =bisosProvisioners.sh= | =/opt/bisosProvisioner/...= | bxGenesis/provisioners |
+| 3     | =bsipProvision.sh=     | =/bisos/core/bsip/bin=      | bisos/bsip4            |
+
+Stage 0 on Debian 11 used pip; stage 2 runs from =/opt/bisosProvisioner/gitRepos/provisioners/bin=.
+
+- Stages 0--2 bootstrap with pipx and self-contained ICMs: accounts, the =/bisos= bases, the venvs,
+  and the first, anonymous mass clone of the repos (stage 2's =bisosBaseDirsSetup.sh
+  -i bxGitReposBasesAnon=, with the pipx-installed =bx-gitReposBases=, into =/bisos/git/anon=).
+- Stage 3 is the steady state: from =/bisos/core/bsip/bin= on, the Python environment is set up
+  (=/bisos/venv/py3/bisos3=, from =bisos.py3-all=), so a plant there uses =#!/bin/env python=.
+  =bsipProvision.sh= then runs three sboms: =pyVenv-asc-sbom.pcs=, =rawBisos-sbom.pcs= and
+  =nvm-sbom.pcs=. =rawBisos-sbom.pcs= is where Raw-BISOS adds pip and apt packages beyond the base;
+  its =sbomsList= is empty today.
+- Stages 2 and 3 keep some files in sync by hand; stages 1 and 3 share =bsipProvision_lib.sh=.
+
+** The repos: anon first, then auth
+
+- The repos are cloned twice over a platform's life. First anonymously (https; the registry's
+  =git://= works through a global =url.https://.insteadOf git://=) into =/bisos/git/anon/bxRepos=.
+  A developer platform later clones them again, authenticated (ssh, with a host alias
+  =--gitLabel=, e.g. =github.com= or =mb1_github=), into =/bisos/git/auth/bxRepos=
+  (=pltfrmDevelBecome.sh -i securityMode developer=; =bisosBaseDirs.sh=).
+- *Which one is in use is the symlink* =/bisos/git/bxRepos=: to =/bisos/git/anon/bxRepos= or
+  =/bisos/git/auth/bxRepos= (=bisosBaseDirs.sh -i bxReposAnonSet= / =bxReposAuthSet=). Anything that
+  clones into bxRepos reads that link to know the mode and the destination; =ls -l /bisos/git/bxRepos=.
+- Each clone is =bx-gitReposBases= (bisos.common) over three pbds: =bxReposCollection= (top-level
+  directories and links), =bxReposRoot= (the =gitClone(...)= lines of
+  =bisos-pip/common/py3/bisos/common/baseDirBxRepos.py=, by GitHub organization) and =extRepos=.
+- Repos added since are listed as data in =/bisos/core/bsip/bin/bxRepos-gitist.pcs= (a
+  bisos.gitist plant), which =bisosBaseDirs.sh -i bxGitReposBasesReClone= runs after the
+  =bxReposRoot= pbd, and =bsipProvision.sh -i sysBaseGeneralAugment= after =rawBisos-sbom.pcs=
+  (which brings bisos.gitist into bisos3): add a new repo there, not to =baseDirBxRepos.py=. The
+  registry moves there in stages (bxGenesis/start WorkPlan 2.2).
+
+Regression: =bxObjects/bro_dockerfiles= starts containers from a fresh Debian and runs the whole
+chain, on VMs. *In a container, never run =raw-bisos.sh=.* The RawBisosCBMs layer (capabilities over
+the raw platform) is described in =rawBisosCBMs/README.org= and absorbed separately.
+
+* Absorbing a Change Into the Chain
+
+| Change on a platform                | Absorbed by                                  |
+|-------------------------------------+----------------------------------------------|
+| a pip package created or updated    | its release on PyPI (the user uploads)       |
+| a new pip package Raw-BISOS needs   | a =pp()= line in =rawBisos-sbom.pcs=         |
+| a repo created or deleted on GitHub | a line in =bxRepos-gitist.pcs=          |
+| an apt package or system setup      | an sbom the chain runs (=rawBisos-sbom.pcs=) |
+
+- Release: =pypiProc.sh= in the package's =py3/= (=bisos-pip-release=).
+- =pp("bisos.<name>")=, unless =bisos.py3-all= already brings it.
+- =/bisos/core/bsip/bin/bxRepos-gitist.pcs= (=reposList=); a deletion still edits
+  =baseDirBxRepos.py= until its list moves there.
+- An sbom of its own goes in =rawBisos-sbom.pcs='s =sbomsList=.
+
+A new package goes into =rawBisos-sbom.pcs= only once it is on PyPI: the chain installs from PyPI,
+and an unpublished name fails there. Packages of the CBM layer (a capability's own package, e.g.
+=bisos.kafka=) belong to its CBM leaf, not to the raw chain.
+
+* Checking a Platform Against the Chain
+
+Read-only, without running the chain:
+- *pip*: the =bisos.*= packages of =/bisos/venv/py3/bisos3= (=pip list=, =pip list -e= for the
+  editable ones) against the closure of =bisos.py3-all= on PyPI plus =rawBisos-sbom.pcs=; each
+  local =bisos-pip/<name>= repo against PyPI (published? which version?).
+- *repos*: the git repos under =/bisos/git/bxRepos/<org>/= against the =gitClone= lines and
+  =bxRepos-gitist.pcs=, both ways;
+  a registry entry not cloned locally is checked on GitHub (=git ls-remote=) before calling it gone.
+- *sboms*: the =*-sbom.pcs= on PATH against the three the chain runs.
+Report gaps as tables (item, state, what to change, where), raw layer and CBM layer apart.
+
+* Rules
+
+- Never run =raw-bisos.sh= in a container; regression runs are =bro_dockerfiles=' job, on VMs.
+- Publishing to PyPI and creating or deleting GitHub repos are the user's.
+- Keep the raw chain and the CBM layer apart: a package used only by one capability goes with that
+  capability.
+
+* Available Skills
+
+All BISOS skills come from one shared set, =mother/_skills/=; these are the ones this work uses most.
+
+| Skill                 | Trigger --- when Claude loads it               |
+|-----------------------+------------------------------------------------|
+| =sbom-authoring=      | editing =rawBisos-sbom.pcs= or another sbom    |
+| =bisos-pip-release=   | a package to be released to PyPI               |
+| =cbm-authorship=      | a change that belongs to the CBM layer instead |
+| =writing-cs-commands= | a PyCS command, e.g. in =bisos.common=         |
+
+# Local Variables:
+# eval: (setq-local toc-org-max-depth 3)
+# End:
