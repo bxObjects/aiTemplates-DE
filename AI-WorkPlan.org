@@ -198,6 +198,26 @@ Not started; waiting on Mohsen.
   title, and is a shorter variant of bisos-pip (same bisos-capabilites.org): keep both, or fold one?
 ----- Results: ------
 
+** TODO [#A] <<3.4>> Clickable commands in panels; the session commands' new names :aiAndMe:
+:PROPERTIES:
+:ORIGIN: Mohsen
+:IMPORTANCE: Medium
+:REPO: this
+:BASE: this
+:FOUND: <2026-11-02 Mon>
+:END:
+----- Results: ------
+2026-11-02 (Claude, from blee/vscode-claude and bisos.aiActivity sessions):
+- =blee-panels/AI-Activity.org=: "Panels Run Commands: Make Them Clickable" --- =bashRun:= /
+  =bashRunHere:= links (blee/env3 =legacy/lsip-basic.el=; recorded in AI-Outputs.org), elisp
+  links, and the command dblock models (one command, command intro, run and keep).
+- =blee-panel-authorship= skill: "Clickable shell commands" (the seven button dblocks, =runResult=
+  semantics, writing =bashRun:= by hand); =:outLevel= corrected: 0 a part, 1 a chapter, most panels
+  use 1 (Mohsen).
+- =bs-blee-emacs-server=, =blee-pkg/AI-Activity.org=: =/bx-session-start= for =/bx-confirm-root=
+  (aiTemplates-workFlow 6.1).
+- The base was re-assembled (IN SYNC). Open: the dblock writers emitting =bashRun:= (AI-Outputs.org).
+
 ** -
 
 # Local Variables:

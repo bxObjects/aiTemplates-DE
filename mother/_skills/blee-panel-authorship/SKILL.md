@@ -1,6 +1,6 @@
 ---
 name: blee-panel-authorship
-description: Use when writing or updating a bisos-pip package's Blee-Panel (`py3/panels/<pkg>/_nodeBase_/fullUsagePanel-en.org`) — the primary in-Blee usage documentation for a package. Covers the standard panel skeleton, which dblocks to use for each section (installation, command intro, feature groups, user config, TODOs), and the dblock content policy.
+description: Use when writing or updating a bisos-pip package's Blee-Panel (`py3/panels/<pkg>/_nodeBase_/fullUsagePanel-en.org`) — the primary in-Blee usage documentation for a package. Covers the standard panel skeleton, which dblocks to use for each section (installation, command intro, feature groups, user config, TODOs), and the dblock content policy. Also when a panel (or any Blee org file) should offer a clickable shell or ICM command --- an `[[elisp:(lsip-local-run-command ...)]]` button, the `blee:panel:unix:cmnd`, `unix:cmndIntro`, `icm:bash:cmnd`, `icm:bash:intro`, `icm:py:cmnd`, `icm:py:intro` and `bxPanel:runResult` dblocks --- or when a command's output should be captured into the panel, or a click ran in the wrong directory.
 ---
 
 # Blee-Panel Authorship for bisos-pip Packages
@@ -112,14 +112,89 @@ Use this decision table:
 "show me what this produces" documentation. `icm:py:cmnd` is a clickable
 button.
 
+## Clickable shell commands: how a panel runs a command
+
+Every command button in a panel, whichever dblock writes it, comes down to one org link:
+
+```org
+[[elisp:(lsip-local-run-command "vscodeClaude.cs -i hooksCheck")][vscodeClaude.cs -i hooksCheck]]
+```
+
+`lsip-local-run-command` (blee/env3 `legacy/lsip-basic.el`) types the command into the comint shell
+buffer `*LSIP* localhost`, presses Enter and shows that buffer. So the command runs in a
+real interactive bash: your environment and aliases apply, the output stays in the shell buffer for
+scrolling and rerunning, a long-running command can be watched or interrupted, and a `sudo`
+prompt can be answered. Things to know:
+- The *Results* line of every panel's top controls (Here, Below, Right, Other, Popup) and its
+  *Window* setting (0-3, `blee:bnsm:results-window-set`; the default is 2, split below) decide where
+  the shell buffer appears.
+- It runs in the shell's own current directory, not the panel's. `lsip-local-run-command-here`
+  first sends `pushd <the panel buffer's default-directory>`: use it when the command depends on
+  where it runs (the `lsf`, `pwd` and `pushd` buttons of the top controls are its common uses).
+- The command is typed, not quoted: keep `"` out of it, or escape it as `\"` inside the elisp
+  string.
+
+Seven dblocks write such buttons. Their writers are in
+blee/env3 `dblocks/dblock-org-general.el`:
+
+| Dblock                      | Header keys                  | Writes                                |
+|-----------------------------|------------------------------|---------------------------------------|
+| `blee:bxPanel:runResult`    | `:command :results`          | the button, plus the output (below)   |
+| `blee:panel:unix:cmnd`      | `:label :command :folding?`  | one button for any shell command      |
+| `blee:panel:unix:cmndIntro` | `:label :command`            | `cmd`, `Man`, `cmd --help`            |
+| `blee:panel:icm:bash:cmnd`  | `:label :icmName`            | one button for a Bash ICM invocation  |
+| `blee:panel:icm:bash:intro` | `:label :icmName`            | examples, visit, `which -a`, describe |
+| `blee:panel:icm:py:cmnd`    | `:label :icmName`            | one button for a PyCS invocation      |
+| `blee:panel:icm:py:intro`   | `:label :icmName`            | examples, visit, describe             |
+
+All take `:outLevel :sep :comment :afterComment` too. Examples, as found in panels:
+
+```org
+####+BEGIN: blee:panel:unix:cmnd :outLevel 2 :sep nil :folding? nil :label "info" :command "sudo netstat -plnt" :comment "Open Ports, pid/cmnd" :afterComment "-- Diagnostic"
+####+BEGIN: blee:panel:unix:cmndIntro :outLevel 1 :sep nil :folding? nil :label "Cmnd" :command "nmcli" :comment "Network Manager" :afterComment "L2+L3"
+####+BEGIN: blee:panel:icm:bash:cmnd :outLevel 1 :sep t :folding? t :label "BinsPrep" :icmName "lcaSynergySrcBinsPrep.sh -i fullUpdate" :comment "Source BinsPrep" :afterComment ""
+####+BEGIN: blee:panel:icm:py:cmnd :outLevel 1 :sep t :folding? nil :label "PyCS" :icmName "marmeeDaemonSysd.cs --cls=sysdUnitMarmee  -i sysdUserUnit status" :comment "" :afterComment ""
+####+BEGIN: blee:bxPanel:runResult :outLevel 1 :command "dnsip www.example.com"  :results "stdout" :comment "" :afterComment ""
+```
+
+**`runResult` runs the command twice over.** The button runs it in `*LSIP* localhost`, as above.
+Separately, *regenerating* the dblock (its `D-Run` button, `blee:org-update-named-dblocks-above`,
+or Update Buf Dblocks) runs it with `shell-command-to-string` and writes the output into the
+panel, under a "Last Executed at: ... by: ... on: <host>" line:
+- `:results t` (or no `:results`): output captured; `:results "stdout"` is labelled "stdout",
+  but the writer does not actually drop stderr (the `2> /dev/null` it prepares is unused).
+- `:results nil` or `"none"`: only the button; regenerating runs nothing.
+- So regenerating a panel runs every `runResult` command with results. Give results only to
+  read-only, quick commands. An action goes in a `cmnd` dblock, or in `runResult` with `"none"`.
+- `echo <command>` as the `:command` is the panel idiom for "edit before running": the
+  click prints the line in the shell buffer, ready to edit and run (common for intrusive commands).
+
+**Writing buttons by hand: `bashRun:` and `bashRunHere:`.** Between dblocks (in plain org text, a
+TODO, a list of steps) write the command as the link itself:
+
+```org
+[[bashRun:vscodeClaude-assemble.cs -i fullCheck]]
+[[bashRunHere:lsf]]
+[[bashRun:vscodeClaude-assemble.cs -i fullUpdate][Assemble]]
+```
+
+These org link types (blee/env3 `legacy/lsip-basic.el`, 2026-11-02) call `lsip-local-run-command`
+and `lsip-local-run-command-here` on the link's path, trimmed. Without a description the link
+displays as itself (`bashRun:...`), which tells the reader a click runs it. A `]` in the command
+needs org's backslash escape. They are the short form of what the dblocks still write,
+`[[elisp:(lsip-local-run-command "...")][...]]`, which keeps working. An elisp function is linked
+directly: `[[elisp:(b:vscode/init)][b:vscode/init]]`. On GitHub any of these shows as plain text.
+
 ## Common dblock header parameters
 
 **`blee:bxPanel:foldingSection`**:
 ```
-:outLevel 0 :sep t :title "<Section Title>" :anchor "<Anchor>" :extraInfo "<subtitle>"
+:outLevel 1 :title "<Section Title>" :anchor "<Anchor>" :extraInfo "<subtitle>"
 ```
-Use `:outLevel 0` for top-level sections, `:outLevel 1` for nested. `:sep t`
-adds a separator line above; `:sep nil` omits it. `:anchor` becomes an
+`:outLevel` is the panel's document structure: `0` is a *part*, `1` a *chapter*, `2` a section
+within a chapter. Most panels have no parts: their sections are chapters, `:outLevel 1`, all
+siblings (as the Overview's is). Use `:outLevel 0` only in a panel that really groups chapters
+into parts. `:sep t` adds a separator line above; `:sep nil` omits it. `:anchor` becomes an
 `<<Anchor>>` target for cross-references.
 
 **`blee:panel:icm:py:cmnd`**:
@@ -135,9 +210,9 @@ in the same section. `:folding? nil` keeps the cmnd inline (not collapsed).
 :outLevel 1 :sep t :command "<full command>" :results "stdout"|"none"
 :comment "<description>" :afterComment ""
 ```
-`:results "stdout"` captures the command's stdout into the block body when
-the dblock is regenerated. `:results "none"` runs the command but doesn't
-capture output.
+`:results "stdout"` captures the command's output into the block body when
+the dblock is regenerated (stderr too, in practice; see above). `:results "none"` writes only the
+button: regenerating runs nothing, and clicking runs the command in the shell buffer.
 
 ## What to include vs. exclude
 

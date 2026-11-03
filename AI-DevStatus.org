@@ -53,6 +53,13 @@ Blee", "Diagnose a slow Blee" (the menu-bar-update-hook finding of 2026-10-31, g
 several READMEs, one owner per table. =graphviz-authoring=: the vanishing cluster box. The base needs
 =assemblyUpdate= for the new skill.
 
+2026-11-02 (from blee/vscode-claude and bisos.aiActivity sessions; WorkPlan 3.4): Blee panels run
+commands --- =blee-panels/AI-Activity.org= "Panels Run Commands: Make Them Clickable" (=bashRun:= and
+=bashRunHere:= links, defined in blee/env3 =lsip-basic.el=, and the command dblocks) and the
+=blee-panel-authorship= skill's "Clickable shell commands" section; that skill also corrects
+=:outLevel= (0 a part, 1 a chapter). =bs-blee-emacs-server= and =blee-pkg/AI-Activity.org= name
+=/bx-session-start= instead of =/bx-confirm-root=. Uncommitted.
+
 * Architecture
 
 - =mother/AI-Activity.org=, =mother/AI-Outputs.org= (a link out to the BISOS ledger in

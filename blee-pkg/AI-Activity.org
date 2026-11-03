@@ -86,7 +86,7 @@ that each function is defined once.
   functions, not its concepts. When a lower layer needs something only an upper one knows, it
   declares a hook, a function variable, a setting or an argument, and the upper layer supplies it
   (blee/vscode-claude: layer 4 asks =b:vscode:claude:baseDir-function=, layer 5 sets it; the
-  workflow command =/bx-confirm-root= calls the =register== function the prompt names). Test: each
+  workflow command =/bx-session-start= calls the =register== function the prompt names). Test: each
   layer loads and works with only the layers below it.
 - *One elisp layer per CSXU*: =b:<layer>.el= wraps =<layer>.cs= of a bisos-pip package (e.g.
   =b:vscode.el= over =vscode.cs=, =b:vscode:claude.el= over =vscodeClaude.cs=), so each layer has

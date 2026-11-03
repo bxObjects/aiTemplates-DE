@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 * Table of Contents     :TOC:
 - [[#general-this-repo-is-part-of-bystar-bisos-and-blee][General: This Repo is Part of ByStar, BISOS and Blee]]
 - [[#about-blee-panels-in-general][About Blee Panels in General]]
+  - [[#panels-run-commands-make-them-clickable][Panels Run Commands: Make Them Clickable]]
 - [[#repo-paths-always-via-bisosgitbxrepos][Repo Paths: Always Via =/bisos/git/bxRepos=]]
 - [[#git-commits-and-git-pushes][Git Commits and Git Pushes]]
 
@@ -21,6 +22,43 @@ when needed.
 Blee-Panels are described in:
 
 @/bisos/panels/blee-core/blee-panels/_nodeBase_/fullUsagePanel-en.org
+
+** Panels Run Commands: Make Them Clickable
+
+A panel is a place to act, not only to read. Where a panel tells the reader to run something,
+make it a button instead of a quoted command line:
+- a shell or ICM command: =[[bashRun:<command>]]=, which types it into Blee's shell buffer
+  =*LSIP* localhost= and runs it there; =[[bashRunHere:<command>]]= first =pushd='s to the panel's
+  directory. These link types (blee/env3 =legacy/lsip-basic.el=, 2026-11-02) are the short form
+  of =[[elisp:(lsip-local-run-command "<command>")][<command>]]= (and =-here=), which the dblocks
+  below still write and existing panels are full of;
+- an elisp function: =[[elisp:(<function>)][<label>]]=.
+
+*The dblock models of specifying a command.* Rather than writing the link, a panel usually
+states the command as a parameter of a dblock's =####+BEGIN:= header, and the dblock writer
+(blee/env3 =dblocks/dblock-org-general.el=) produces the button line, with its label and comments,
+when the panel is regenerated. The header is what is authored; the body is generated, never
+hand-edited. Three models:
+
+| Model         | Dblocks (=blee:panel:= / =blee:bxPanel:=)          | The command is given as    |
+|---------------+----------------------------------------------------+----------------------------|
+| One command   | =unix:cmnd=, =icm:bash:cmnd=, =icm:py:cmnd=        | =:command= or =:icmName=   |
+| Command intro | =unix:cmndIntro=, =icm:bash:intro=, =icm:py:intro= | the program name only      |
+| Run and keep  | =runResult=                                        | =:command=, and =:results= |
+
+- *One command*: one button for the command line as given (an ICM or PyCS invocation, or any
+  shell command), with =:label=, =:comment= and =:afterComment= around it.
+- *Command intro*: the writer derives several buttons from the name: for an ICM or PyCS command
+  =-i examples=, =-i visit= and =-i describe= (bash also =which -a=); for a Unix command the
+  command itself, =Man= and =--help=.
+- *Run and keep*: a button, and when the dblock is regenerated (=D-Run=, or Update Buf Dblocks)
+  the command is run and its output is written into the panel under a "Last Executed at" line.
+  Give results only to read-only, quick commands, since regenerating runs them;
+  =:results "none"= keeps only the button.
+- =echo <command>= as the command is the idiom for "edit before running": the click prints the
+  line in the shell buffer.
+Details and examples: the =blee-panel-authorship= skill, "Clickable shell commands". Making the
+dblock writers produce =bashRun:= is open in =AI-Outputs.org=.
 
 * Repo Paths: Always Via =/bisos/git/bxRepos=
 

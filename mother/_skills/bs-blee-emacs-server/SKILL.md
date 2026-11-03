@@ -25,7 +25,7 @@ with `M-x server-start`.
 
 Two other sources, when they apply:
 - *The prompt names it*: a prompt sent from Blee (blee/vscode-claude) may carry
-  `emacs=<socket>`, as `/bx-confirm-root emacs=… register=…` does. Use that one.
+  `emacs=<socket>`, as `/bx-session-start emacs=… register=…` does. Use that one.
 - *The partner file*, when the user asks Claude to use Blee: `vscode.cs -i vscodePartner` prints
   the live partner Emacs (socket, pid) that `b:vscode/init` recorded in
   `/bisos/var/blee/vscode/partner-<user>.json`, or why there is none. Do not go looking for an Emacs
@@ -58,7 +58,7 @@ user's buffers, and never leave a mode changed: restore what you changed (and sa
 
 Some commands carry that agreement in their invocation: `/bx-git-commit-walk` opens each repo
 with the user's `gitOpener` (`aiActivity.cs` userConfig; for Blee, `vscode.cs -i bleeMagit`: its
-magit status, frame raised), and `/bx-confirm-root register=<function>` calls the function the
+magit status, frame raised), and `/bx-session-start register=<function>` calls the function the
 prompt names. They do that and nothing more. A lower layer never names Blee's functions: the
 prompt or a setting supplies them.
 
