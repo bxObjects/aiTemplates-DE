@@ -72,7 +72,16 @@ lcntProc.sh -p extent="build+release" -i lcntBuild cur
 
 # Publish to the configured Exports (git/web/plone):
 lcntProc.sh -i lcntExport all
+
+# Land a released document on the astro sites of this system (the localWeb export):
+lcntProc.sh -p extent="build+release" -i lcntBuild all
+lcntProc.sh -i lcntExport ./LCNT-INFO/Exports/localWeb
 ```
+
+The `localWeb` export lands only what `build+release` staged (it prints "not released" otherwise),
+into `<siteBase>/var/lcnt/<class>/<nu>/<rel>/` with a `meta.pyl`; a presentation exports its pdf
+only, for now. Run it by name: it is not in `Exports/enabledList`. The site then regenerates its
+Library pages (`astroSite.cs -i libraryGenerate`; see `astro-site-authorship`).
 
 ## Where outputs go
 

@@ -211,6 +211,11 @@ required). Its body records `Working Directory`, `File`, `Activity`, and
   `org-table-align` over a whole `README.org` also realigns the generated
   `topControls` table. Skip tables inside `#+BEGIN:` / `#+END:` (or restore them
   from git and check with `git diff`).
+- **A new `_csu.py` (or `.cs`) without its `file/dblockControls` block breaks under `bx-dblock`.**
+  The block `b:py3:cs:file/dblockControls :classification "cs-u"` (copy it from a sibling CSU)
+  tells the writers which classification the file is; without it they emit bare org text into the
+  Python and the file stops compiling. Add it first, then run `bx-dblock`; keep a copy of the
+  file until it compiles.
 - **Adding a new dblock signature** — write the handler as a Python function
   and register it via
   `bisos.pyDblock.updateDblock.registerHandler(sig, fn)`. See

@@ -73,8 +73,16 @@ Book builds add print-SKU vars: `isbn13Nu`, `medium`, `paperGsm`, `printColor`, 
 4. **Add an export**: create `LCNT-INFO/Exports/<spec>/` (`exportMethod` = `git`/`web`/`plone`,
    plus method-specific vars), add it to `Exports/enabledList`, repoint `curExport` if desired.
 
+5. **Add a `localWeb` export** (publish on the astro sites of this system): `Exports/localWeb/` with
+   `exportMethod` = `localWeb`, `exportSpecName`, `buildSpecs` (an article: its pdf and `html` builds;
+   a presentation: its pdf build only, for now) and `destinations` (FQDNs, set by the author).
+   `lcntExportInfoGens` writes it without `destinations`. It is deliberately **not** in
+   `Exports/enabledList`, so `-i lcntExport all` never lands a document on a site; run it by name.
+
 ## Gotchas
 
+- `docSrcList` holds one source per line: to test for a word in shell, normalise it first
+  (`" $( echo ${lcnt_docSrcList} ) "`), or a `case` pattern never matches.
 - Values are **file contents**, not `name=value`. Beware trailing newlines where an exact match
   matters; mirror the style of existing file-vars in the same dir.
 - `enabledList` is the single source of truth for what `all` builds — adding a `Builds/<spec>/`

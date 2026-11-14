@@ -99,15 +99,11 @@ Decided 2026-10-18 (user): static-site processing lives in =bisos.webCap=, besid
 
 ** The LCNT Library (optional)
 
-A site can publish LCNT documents. The lcnt =localWeb= export (bisos.lcnt) lands a release in the site's
-=var/lcnt/<class>/<nu>/<rel>/= (pdf, =html/=, =meta.pyl=, a Python literal); =astroSite.cs -i
-libraryGenerate <fqdn>= (bisos.webCap, =astroLcntLibrary_csu=) writes *content-tree nodes* from it:
-=content/tree/lcnt/.../accessPage/= and =content/tree/library/index_html/=. The site needs a =library=
-folder node, the page parameter =layoutBare= (=contentTree.mjs=, =TreeLayout.astro=), =.gitignore= lines
-for =var/=, =content/tree/lcnt/= and =content/tree/library/index_html/=, and the vhost's =/lcnt/=
-locations (=webVd_nginxSites.lcntVarLocations()=; a site's vhost has to be regenerated to get them). The
-generated nodes are never edited by hand and never committed. Only an article's html is embedded; a
-presentation is pdf only for now. The contract: =/bisos/asc/web/astro/lcntLibrary/README.org=.
+A site can publish LCNT documents: the lcnt =localWeb= export lands a release in the site's =var/lcnt/=
+and =astroSite.cs -i libraryGenerate= makes the Library tab and an access page per release from it. The
+generated nodes are never edited by hand and never committed. A presentation is pdf only for now. The steps
+a site needs are in the =astro-site-authorship= skill (4b); the contract is
+=/bisos/asc/web/astro/lcntLibrary/README.org=.
 
 * React Applications as Islands
 

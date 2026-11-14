@@ -142,6 +142,26 @@ The worked example is `bisos-web/csPlayer-webUi` (webCliGui); its README lists e
    (transitions are otherwise caught half way). Its backend (e.g. `/api/`) is a separate step: an nginx
    `location` in `cbm/<name>-wvd.pcs` proxying to it.
 
+## 4b. The LCNT Library (Optional)
+
+A tab that lists released LCNT documents, with an access page per release. The documents are landed
+by the lcnt `localWeb` export (see `lcnt-build-and-release`) under `<siteBase>/var/lcnt/<class>/<nu>/<rel>/`;
+`astroSite.cs -i libraryGenerate <fqdn>` (bisos.webCap) turns them into content-tree nodes. The starter
+has the hooks; a site copied from an older starter needs them added:
+
+1. `content/tree/library/` as a `folder` node (`_tree_`, `objectType`, `folderTitle`, `pubState`) and
+   `library` in the root's `nodesOrdered`.
+2. The page parameter `layoutBare` read by `contentTree.mjs` and honoured in `TreeLayout.astro`.
+3. `.gitignore`: `var/`, `content/tree/lcnt/`, `content/tree/library/index_html/` (landed and
+   generated: never committed, never edited).
+4. The vhost's `/lcnt/` locations from `webVd_nginxSites.lcntVarLocations()` (a PALS site's
+   `pals-wvd.spcs` writes them; regenerate the vhost of an existing site to get them).
+5. In the document: `Exports/localWeb/destinations` names the FQDN. Land it, run `libraryGenerate`,
+   then `siteBuild`.
+
+Only an article's html is embedded; a presentation is pdf only for now. The contract is
+`/bisos/asc/web/astro/lcntLibrary/README.org`.
+
 ## 5. Build, Serve, Plant (banna Sites; a PALS: `bx-pals-web-site` steps 3–4)
 
 ```bash

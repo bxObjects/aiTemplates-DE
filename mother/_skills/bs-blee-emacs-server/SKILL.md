@@ -224,6 +224,8 @@ timeout 60 emacsclient -s $S --eval '(progn (require (quote benchmark))
 - *A minibuffer open in the user's Blee* shows as `(recursion-depth)` 1: the user's own prompt; it
   does not block `emacsclient`. Do not answer it.
 
+- *Feature names are not file names.* `poly-dblock.el` provides the feature `comeega`, so
+  `(require 'poly-dblock)` fails with file-missing; check `(featurep 'comeega)` instead.
 - *A file reload does not re-run `bcpg:<pkg>:config|main`*: the `setq` / `add-hook` forms of a Blee
   package adoption live there. After the user reloads such a file, they (or you, when asked) run
   `(bcpg:<pkg>:config|main)` once; `add-hook` does not duplicate.
