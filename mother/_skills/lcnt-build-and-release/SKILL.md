@@ -91,6 +91,26 @@ Library pages (`astroSite.cs -i libraryGenerate`; see `astro-site-authorship`).
   active version.
 - HeVeA HTML builds produce a `heveaHtml-*` directory; Reveal builds a reveal HTML tree.
 
+## The Reveal build (`pres-reveal`, results `html`, or `disposition+html`)
+
+`lcnLcntBuildLib.sh` generates `pres-reveal` with `results` = `html`: it does not make the frame
+images. Then run `lcntProc.sh -i beamerDerivedFullBuild` first (after `fullClean ForGit`, a fresh
+clone, or edited frames), or set `results` to `disposition+html` (EmacsConf25 does); else the deck
+shows broken images. A build type that does both is proposed in AI-Outputs.org (2026-11-18).
+
+1. `disposition`: the Beamer PDF, then the per-frame images in `disposition.gened/` (see
+   `lcnt-multimedia`; a few minutes).
+2. `html`: HeVeA HTML, then `elispFilterHtml.sh` (from PATH, `/bisos/blee/bin`, with
+   `exec=mainRevealHevea`) makes `heveaHtml-<doc>/revealSlides.html`, copied to `revealJsBase/`.
+3. `revealJsBase/<doc>.html` is copied from the start file and filled by `bx-dblock`
+   (`org-dblock-update-file-bx` in the user's Emacs) with `revealJsHead.html`,
+   `./revealSlides.html` and `revealJsTail.html` (`/bisos/apps/defaults/web/revealJs/bxDblock/`).
+   reveal.js and its plugins are loaded from `revealJsBase/node_modules` ->
+   `/usr/local/lib/node_modules` (installed by `revealJs-sbom.pcs`, bisos.lcnt).
+
+Check after a build: `revealJsBase/<doc>.html` is tens of KB, not the ~480-byte start file, and
+`ls disposition.gened/*/slide-1.png | wc -l` matches the frames.
+
 ## Switching the active build
 
 Point `curBuild` at a different spec, then `lcntBuild cur`:
@@ -108,6 +128,11 @@ lcntProc.sh -v -n showRun -i lcntBuildSetCur ./LCNT-INFO/Builds/pres-reveal
   `.../common/figures`. A broken figures symlink is a common first-build failure.
 - `enabledList` — if `all` builds too much/too little, edit `LCNT-INFO/Builds/enabledList`
   (see `lcnt-info-authoring`).
+- Reveal: the fill (step 3 above) needs the user's Emacs, so build from Blee. It is **refused** when
+  an Emacs buffer of `revealJsBase/<doc>.html` is open and out of date with the file, and the build
+  carries on silently with the unfilled start file. Close or revert that buffer before rebuilding;
+  never leave one open after filling by hand (`emacsclient --eval (org-dblock-update-file-bx ...)`
+  kills only buffers it opened itself).
 - Do **not** hand-edit the seeded dblock regions of `lcntProc.sh`; only its per-project hook
   functions (`buildPre`, `buildPost`, `cleanPost`, `vis_lcnLcntInputPre`) are editable.
 

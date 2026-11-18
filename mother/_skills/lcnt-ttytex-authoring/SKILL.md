@@ -54,6 +54,14 @@ Rules:
   `LCNT-INFO` (`docSrcLangs`, `articleForm`, build `buildDocClass`) — so prefer changing the
   *metadata* over hardcoding a toggle. Hardcode only genuinely content-specific splits.
 
+## Presentation frames
+
+In a presentation body each frame is opened by a frame dblock (`%%%#+BEGIN: b:lcnt:pres:frame/...`
+with a `:label`). Its type decides whether Reveal shows the Beamer frame as an image or as native
+HTML, and the label keys the frame's image (`disposition.gened/<label>/`) and voice-over
+(`audio/<label>.mp3`). Choose the type per frame; the table and the image-then-HTML pair are in
+`lcnt-multimedia`. Edit the frame's content after the `%%%#+END:`, not inside the dblock.
+
 ## Typical loop
 
 ```bash

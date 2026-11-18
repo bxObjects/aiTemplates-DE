@@ -63,6 +63,10 @@ pkgsSeed.setup(
 
 Followed by a `readme` command class and `examples_csu()` function (see below).
 
+The org docstring at the top is an ordinary Python string: a backslash in it (a TeX macro such as
+`\pnote`, a path like `C:\x`) is an invalid escape, and Python prints a `SyntaxWarning` on every
+run. Write the text without the backslash, or make the docstring raw (`r""" #+begin_org ...`).
+
 ## Decision Tree: Which Installer?
 
 | Situation | Use |
