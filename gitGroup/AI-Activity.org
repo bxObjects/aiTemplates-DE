@@ -1,0 +1,130 @@
+#+title: AI Agents Guidance for a gitGroup's Base Repo
+
+This file provides always-loaded orientation for Claude Code when working in a gitGroup's *base repo*
+(=/bisos/git/bxRepos/<gitGroup>/base=). The base repo is not a package. It holds two things: what
+is specific to the gitGroup (its plant), and the plans whose work spans several of the gitGroup's
+repos.
+
+*Many instances.* There is one base repo per gitGroup. This file is the same for all of them; what
+is specific to one gitGroup (its parent and children, its rules, its current stages) stays in that
+base repo's =README.org=, =AI-WorkPlan.org= and =AI-DevStatus.org=.
+
+* Table of Contents     :TOC:
+- [[#the-gitgroup-model][The gitGroup Model]]
+- [[#the-hierarchy-of-gitgroups][The Hierarchy of gitGroups]]
+- [[#the-plant][The Plant]]
+- [[#cross-repo-stages][Cross-Repo Stages]]
+- [[#sessions][Sessions]]
+- [[#verification][Verification]]
+- [[#rules][Rules]]
+- [[#available-skills][Available Skills]]
+
+* The gitGroup Model
+
+The model is defined in bisos.gitist's =README.org= ("Gitist Model, Abstractions and Terminology",
+=/bisos/git/bxRepos/bisos-pip/gitist/README.org=) and its plan in =DESIGN.org=. Read them before
+changing a plant or the gitGroup directory. In short:
+
+- A *gitGroup* is a co-anchored set of repos: a GitHub organization, a GitLab group. Its local name
+  and its server name may differ (=blee= <- =bx-blee=).
+- Two special repos: =base= (this repo) and =.github= (the organization's profile), reached through
+  the =gitGroup= symlink.
+- The *members* are the git repos directly in =/bisos/git/bxRepos/<gitGroup>/=.
+- *Two layouts exist.* The target is a plain gitGroup directory that holds =base=, =.github= and
+  the =gitGroup= symlink. Platforms installed so far have the directory itself cloned from a repo
+  (=bisos-pip= from =.github=, =blee= from =bx-blee/base=), by bisos.common's =gitCloneBase=. The
+  change is gitist DESIGN.org Step 2. Until then, check which layout a platform has before
+  reasoning about paths (=git -C /bisos/git/bxRepos/<gitGroup> remote -v=).
+
+* The Hierarchy of gitGroups
+
+gitGroups form a semantic hierarchy, not a filesystem one:
+- =ByStar= is at the top. It also keeps the full gitGroupsSet (gitist README, "gitGroupsSet").
+- =bisos= spans =bisos-pip=, the object gitGroups (=bxObjects=, ...) and the others of BISOS.
+- Below that: =bisos-pip=, =blee=, =bxObjects=, ...
+
+Each base repo names its parent and its children in its =README.org=. Not every gitGroup has a
+base repo of this type yet; one is added when a gitGroup first has a cross-repo stage.
+
+* The Plant
+
+=py3/bin/<gitGroup>_gitGroup.spcs= is spread-planted on bisos.gitist's =gitGroup-seed.cs=. It
+declares only the gitGroup's *rules* (=fileFromTemplate=, =notTracked=); the gitGroup's name and
+directory come from where the file really lives. Its verbs: =gitGroup_members=, =gitGroup_status=
+(read-only), =gitGroup_diff=, =gitGroup_update= (writes, never stages), =gitGroup_cachedListUpdate=.
+
+- *On PATH* through a symlink in =/bisos/core/bsip/bin/=, committed in =bisos/bsip4=. A new plant
+  needs that symlink too.
+- *It depends on gitist.* The plant imports =bisos.gitist.gitGroup_seed=; a fresh platform has
+  whatever bisos.gitist version is on PyPI. A plant that needs an unreleased gitist feature fails
+  on a fresh install.
+- *It depends on the clone.* The bsip4 symlink points into =<gitGroup>/base=. If a fresh install
+  does not clone =base= (bisos.common's =baseDirBxRepos.py= or =/bisos/core/bsip/bin/bxRepos-gitist.pcs=),
+  the symlink dangles.
+- Changing a rule: run =gitGroup_status= before and after; =gitGroup_update= only after the user
+  agrees, since it writes into every member.
+
+* Cross-Repo Stages
+
+The base repo's =AI-WorkPlan.org= holds the stages whose work spans several repos.
+
+- *Which stages belong here.* A stage that needs coordinated changes or releases in two or more
+  repos. A change confined to one repo stays in that repo's workplan.
+- *Repos and release order.* Each cross-repo stage starts with a table:
+
+  | Order | Repo              | Change                         | Released as   |
+  |-------+-------------------+--------------------------------+---------------|
+  | 1     | bisos-pip/common  | the clone lines                | bisos.common  |
+  | 2     | bisos-pip/gitist  | ...                            | bisos.gitist  |
+  | 3     | bisos/bsip4       | ...                            | (git only)    |
+
+- *TODOs name their repo* with a =:REPO:= property, as in =AI-Outputs.org=.
+- *Pointers.* Each repo's workplan concerned gets a one-line TODO that points to the stage here (by
+  path and anchor); it is closed when the stage is. Pointers are the mechanism for now; it may
+  evolve.
+- *Work that crosses gitGroups* lives in the base repo of the gitGroup where it starts, and the
+  other gitGroups' base repos get pointers. A plan that concerns a whole branch of the hierarchy
+  can go up to the parent gitGroup's base repo.
+- *AI-Outputs.org stays separate.* It is the ledger of defects found; a stage here is a plan. A
+  stage can name the AI-Outputs entries it fixes, and closes them when released.
+
+* Sessions
+
+Working across several repos in one session is normal: a session started in the base repo goes on
+to edit the members, the repos of other gitGroups and bsip4. The Session-Root is where the session
+started, not a boundary. Record each repo touched (=/bx-activity-reach= for those that are
+AI-Activities), so that =/bx-git-uncommitted-list= and =/bx-session-verify= cover all of them.
+
+* Verification
+
+- A stage that changes what a fresh install clones or installs ends with a run of the Raw-BISOS
+  chain on a VM (the =bisos-genesis= AI-Activity, =bxGenesis/start=). *In a container, never run
+  =raw-bisos.sh=.*
+- What can be checked in a container, without touching the installed platform:
+  - the clone registry into a scratch directory: =bx-gitReposBases -i pbdUpdate --baseDir=<scratch>
+    --pbdName=bxReposRoot --vcMode=anon=, and =bxReposBaseDir=<scratch> vcMode=anon bxRepos-gitist.pcs=;
+  - the plant against the scratch tree: does =<scratch>/<gitGroup>/base/py3/bin/<gitGroup>_gitGroup.spcs=
+    exist, and does =gitGroup_status= run.
+- An unreleased bisos.common is tested through its editable install in =dev-bisos3=.
+
+* Rules
+
+- Publishing to PyPI, and creating, renaming or deleting repos on GitHub, are the user's.
+- A repo is deleted on the server only after the clone registry no longer names it, that change is
+  released, and a VM install passes.
+- Never commit or push; say "You can commit when ready".
+
+* Available Skills
+
+All BISOS skills come from one shared set, =mother/_skills/=; these are the ones this work uses most.
+
+| Skill                       | Trigger --- when Claude loads it                    |
+|-----------------------------+-----------------------------------------------------|
+| =spread-seeded-cs-commands= | changing the plant                                  |
+| =bisos-pip-release=         | a member package to be released to PyPI, in a stage |
+| =sbom-authoring=            | a stage that changes what an sbom installs          |
+| =readme-authorship=         | the base repo's =README.org=                        |
+
+# Local Variables:
+# eval: (setq-local toc-org-max-depth 3)
+# End:

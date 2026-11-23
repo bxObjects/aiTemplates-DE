@@ -45,6 +45,11 @@ on lint-clean — but a PyPI release should be.
 
 ## Release checklist
 
+**0. Which packages need it.** `pipPkgsStatus.cs` (bisos.pycs) answers it without memory:
+`-i pkgsStatus` gives one row per package under `/bisos/git/bxRepos/bisos-pip`; for one package,
+`-i pkgReleaseStatus <repo>` (does PyPI need a push, bisos3 an update) and `-i pkgLocalStatus <repo>`
+(does the editable install in dev-bisos3 need a reinstall). Read its output: it exits 0 regardless.
+
 **1. Update the version.** In `py3/setup.py`, bump the `version=` string.
 Convention: `0.1`, `0.2`, ..., `1.0` — no patch versions unless a hotfix.
 Also bump `csInfo['version']` inside the main `.cs` file (the value looks

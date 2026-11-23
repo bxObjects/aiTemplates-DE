@@ -96,6 +96,12 @@ Read-only, without running the chain:
 - *sboms*: the =*-sbom.pcs= on PATH against the three the chain runs.
 Report gaps as tables (item, state, what to change, where), raw layer and CBM layer apart.
 
+A change to the clone registry is tested without touching the platform, before any release: the
+editable bisos.common of =dev-bisos3= runs it, into a scratch directory --- =bx-gitReposBases
+-i pbdShow --pbdName=bxReposRoot all=, then =-i pbdUpdate --baseDir=<scratch> --pbdName=bxReposRoot
+--vcMode=anon= with a few entries (=/ <group> <group>/base ...=), not =all= (over a hundred clones);
+=bxReposBaseDir=<scratch> vcMode=anon bxRepos-gitist.pcs= for the gitist list. The VM run still follows.
+
 * Rules
 
 - Never run =raw-bisos.sh= in a container; regression runs are =bro_dockerfiles=' job, on VMs.

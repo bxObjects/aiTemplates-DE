@@ -48,6 +48,7 @@ These are the BISOS / Blee / ByStar ones. A project takes one with
 | =lcnt-libreoffice= | LibreOffice Draw figures, for READMEs and LCNT documents                |
 | =graphviz-pcs=     | graphviz figures as =-graphviz.pcs= scripts                             |
 | =bisos-genesis=    | the Raw-BISOS chain, =raw-bisos.sh= (a singleton: one kind, one use)    |
+| =gitGroup=         | a gitGroup's base repo: its plant, and plans that span its repos        |
 
 Each row is a directory here; its =AI-Activity.org= is the full description. Most kinds have many
 instances; a /singleton/ (=bisos-genesis=) has exactly one, so its =AI-Activity.org= also holds what

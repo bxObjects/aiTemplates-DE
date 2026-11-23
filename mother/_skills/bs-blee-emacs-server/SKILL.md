@@ -223,6 +223,14 @@ timeout 60 emacsclient -s $S --eval '(progn (require (quote benchmark))
   Org's `org-map-dblocks` then only logs a failing dblock ("Error during update of dynamic block").
 - *A minibuffer open in the user's Blee* shows as `(recursion-depth)` 1: the user's own prompt; it
   does not block `emacsclient`. Do not answer it.
+- *Before an Edit or Write of a file the user may have open in Blee* (a WorkPlan, a DevStatus), not
+  only before a dblock update, check it read-only:
+  `(let ((b (find-buffer-visiting "<file>"))) (and b (list (buffer-modified-p b) (verify-visited-file-modtime b))))`.
+  `nil`: not open. Modified (`t` or `autosaved`): stop and ask the user to save --- writing on disk
+  loses one side. Unmodified but `verify-visited-file-modtime` nil: the buffer is behind the file
+  (an earlier write); fine to write, and tell the user to revert it before editing there. An org
+  archive done in Blee is the usual cause of a modified WorkPlan: org saves the archive file at
+  once and leaves the WorkPlan buffer unsaved.
 
 - *Feature names are not file names.* `poly-dblock.el` provides the feature `comeega`, so
   `(require 'poly-dblock)` fails with file-missing; check `(featurep 'comeega)` instead.
