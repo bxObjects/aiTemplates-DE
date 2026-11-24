@@ -159,6 +159,11 @@ reaches outside with `cl-letf`.
 Run: `emacs-31.1 --batch -l test.el`. Timers need a `(sit-for 0.1)` to fire. Keep the test in the
 scratchpad, or in the repo if the user wants it kept.
 
+*A dblock writer* (`org-dblock-write:…`) needs the dblock framework stubbed: `letGet$*` and
+`bxPanel:params$effective` as macros, `bx:invoke:withStdArgs$bx:dblock:governor:process` expanding to
+`(bodyContent)`, and `bx:dblock:control|wrapper` calling through (`(apply f args)`): its advice is
+`:around`, so a stub that returns nil writes nothing.
+
 *A fresh Blee* (interactive behaviour, the real load path, `server`, hooks): skill
 `bs-blee-emacs-server`, section 6. In dev mode it loads the package from the repo as it is on
 disk. Never test in the user's Blee; anything acting on another program (VS Code, X focus, the
@@ -168,8 +173,10 @@ clipboard) needs the user watching.
 
 - README.org: the frame of a sibling blee-pkg (`aiplus`): the panel-controls line, Overview,
   `:TOC:`, Blee and straight installation, the `blee:bxPanel:footer*` blocks; lines and tables
-  within 105 characters (`readme-authorship`). Where the Python package's README has the command
-  tables, link to it rather than copy them.
+  within 105 characters (`readme-authorship`). For what Blee displays (a dblock's rows), measure as
+  the user's Blee shows it, and reason about colours from its faces: query them read-only first
+  (`org-hide-emphasis-markers` hides `*…*` markers; the theme colours `bold`, `underline`, …).
+  Where the Python package's README has the command tables, link to it rather than copy them.
 - A change usually spans three repos. Commit the bisos-pip package first (what the elisp runs),
   then the blee-pkg, then `blee/env3`; each message gets a `Requires:` trailer for the one before
   (`/bx-git-commit-msg`). The adoption installs from github outside dev mode: push the blee-pkg
@@ -181,6 +188,12 @@ clipboard) needs the user watching.
 - *`with-eval-after-load` order*: a transient referring to magit's maps must wait for magit.
 - *A function that errors in `menu-bar-update-hook` or `post-command-hook` is removed by Emacs*:
   the symptom is a feature that stops working silently (or a menu frozen half-built).
+- *Org emphasis and links*: org shows no face for emphasis inside a link's text (`[[l][*x*]]` is
+  plain `org-link`). Put the markers around the link, `*[[l][x]]*`: bold, italic, underline, strike
+  work; verbatim or code around it makes the link literal (C-c C-o does not follow); nesting shows
+  only the outer face.
+- *`org-element-context` clobbers the match data*: in a `re-search-forward` loop, keep
+  `(match-end 0)` before calling it, or the loop never ends.
 - *TRAMP buffers*: `default-directory` is remote; run programs from `~/` and refuse or map remote
   paths explicitly.
 - *A new .el file is not loaded until straight rebuilds the package.* Blee sets

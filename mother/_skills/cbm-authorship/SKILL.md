@@ -35,14 +35,41 @@ When you plant a leaf or change its gate, update that README's tables and the he
 
 ## The `cbmProc.spcs` file shape
 
-A CBM leaf is a directory with three files:
+A CBM leaf is a directory with two files, and optionally a third:
 
 ```
 sys/cbm/<realm>/<capabilityType>/<capabilityName>/
-├── cbmProc.spcs        # THE pointer + atexit hook (executable)
-├── cbmProc.control     # gate state: available | enabled | disabled
-└── cbmProc.status      # append-only outcome log (machine-written)
+├── cbmProc.spcs           # THE pointer + atexit hook (executable)
+├── cbmProc.control        # gate state: available | enabled | disabled
+└── cbmBootstrap-sbom.pcs  # optional: what the CBS needs first (executable)
+
+/bisos/var/cbm/<leafRel>/  # the host's record of this leaf, NOT in the leaf
+├── cbmProc.status         # append-only outcome log (machine-written)
+└── leaf -> <the leaf>     # which clone wrote last
 ```
+
+`<leafRel>` is the leaf's resolved path relative to `/bisos/git/<vcMode>/bxRepos/`, with the
+vcMode dropped (an anon and an auth clone share one status); outside bxRepos, `_abs_/<path>`.
+The leaf is often a read-only anon clone of a `bro_` repo, so nothing may be written in it
+(before 2026-11-24 the status was, and every leaf failed with `PermissionError` on a fresh
+Raw-BISOS). `cbmProc.status` is in the `bro_` repo's `.gitignore`.
+
+### The bootstrap sbom: `cbmBootstrap-sbom.pcs`
+
+What the capability needs installed before its CBS can even be found. Phase 1 (bxGenesis/base
+3.1.2): pip packages only, into `bisos3`; the git clones are the platform's (bisos.common's
+registry, or bsip4's `bxRepos-gitist.pcs` for repos beyond it). Typical content, for a CBS in a
+pip package --- then `cbsSpec` is the CBS's basename, found on PATH once installed:
+
+```python
+from bisos.sbom import pkgsSeed  # pkgsSeed.plantWithWhich("seedSbom.cs")
+pp = pkgsSeed.pipPkg
+pkgsSeed.setup(pipPkgsList=[pp("bisos.kafka")], virtenv="/bisos/venv/py3/bisos3")
+```
+
+`cbm_bootstrap` runs `./cbmBootstrap-sbom.pcs -i sbom_fullUpdate`; `cbm_materialize`,
+`cbm_reMaterialize` and `cbm_sbom` run it first (after the gate). On a dev host `dev-bisos3` is
+first on PATH, so the editable package still wins over the PyPI copy the bootstrap adds to `bisos3`.
 
 The `cbmProc.spcs` body is intentionally short. Airflow as canonical
 example:
@@ -146,7 +173,8 @@ only `cbm_*` in its examples and `walkExamples()`.
 | Cmnd | Purpose |
 |---|---|
 | `cbm_control` | Read (0-arg) or write (1-arg: `available`/`enabled`/`disabled`) the `cbmProc.control` file |
-| `cbm_status` | Print current `cbmProc.status` contents |
+| `cbm_status` | Print the path and contents of this leaf's `/bisos/var/cbm/.../cbmProc.status` |
+| `cbm_bootstrap` | Run the leaf's `cbmBootstrap-sbom.pcs` (not gated) |
 | `cbm_isEnabled` | Predicate; `opResults` = `True` iff enabled |
 | `cbm_enable` / `cbm_disable` / `cbm_available` | Write state (convenience wrappers over `cbm_control`) |
 
@@ -275,9 +303,9 @@ Airflow at:
 ```
 
 Contents:
-- `cbmProc.spcs` — pointer to `airflow-cbs.pcs` (either basename or absolute)
-- `cbmProc.control` — initial `available`
-- `cbmProc.status` — populated by test runs
+- `cbmProc.spcs` — pointer to `airflow-cbs.pcs` (basename, on PATH from `bisos.airflow`)
+- `cbmProc.control` — its gate
+- `cbmBootstrap-sbom.pcs` — `pp("bisos.airflow")` into `bisos3`
 
 Walked from the parent by:
 ```
@@ -314,11 +342,12 @@ Steps (in order):
 3. **Write the leaf's `cbmProc.spcs`** — the ~10-line pointer. Set
    `capabilityName` and `cbsSpec`. `chmod +x` it.
 4. **Create `cbmProc.control`** with contents `available` (initial safe state).
-5. **Create empty `cbmProc.status`**.
+5. **Write `cbmBootstrap-sbom.pcs`** if the CBS needs packages the platform does not install
+   (`chmod +x`). Do NOT create a `cbmProc.status`: it is written under `/bisos/var/cbm/`.
 6. **Test:**
    - `./cbmProc.spcs` → bare menu (verifies seed loads)
    - `./cbmProc.spcs -i cbm_control` → prints `available`
-   - `./cbmProc.spcs -i cbm_materialize` → should skip + audit to `.status`
+   - `./cbmProc.spcs -i cbm_materialize` → should skip + audit to `.status` (`cbm_status` shows where)
    - `./cbmProc.spcs -i cbm_enable` → flips to `enabled`
    - `./cbmProc.spcs -i cbm_materialize` → subprocess-invokes CBS
 7. **If the leaf will be walked**, ensure a `ftoBranchProc.spcs` exists at
