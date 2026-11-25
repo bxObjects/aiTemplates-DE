@@ -157,6 +157,11 @@ output.
 Both are supported deliberately. Basename is the default for portability;
 absolute is available for pinning.
 
+An absolute `cbsSpec`, and any link or path a leaf commits, names the canonical
+`/bisos/git/bxRepos/...`: never `/bxRepos/...` (a convenience link that a fresh
+install does not have) and never `/bisos/git/auth/...` or `/anon/...` (one vcMode
+only). Both broke the pals leaf on a fresh VM install (bxGenesis/base 3.2.2).
+
 Unresolvable specs raise `ValueError` with an actionable message and
 write a `failed: ... cbsSpec-unresolvable: ...` line to `cbmProc.status`.
 Do NOT catch and hide these errors.
@@ -388,6 +393,9 @@ Exemplar (2026-11-01): `bisos-pip/vscodeClaude/py3/bin/vscodeClaude-cbs.pcs`,
 - Do NOT use JSON for `cbmProc.control` or `cbmProc.status`. Plain text.
 - Do NOT catch `ValueError` from `resolveCbsSpec()` and hide it. That
   error is how a user learns their PATH is wrong or their CBS moved.
+- Do NOT name `/bxRepos/...` or `/bisos/git/auth/...` in a leaf, a link or a
+  CBS's own files (`package.json` `file:` dependencies included): use
+  `/bisos/git/bxRepos/...`, or a basename on PATH.
 
 ## References
 
