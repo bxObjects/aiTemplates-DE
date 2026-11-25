@@ -42,6 +42,26 @@ file most commonly examined; the same "no hand-edits inside dblocks"
 rule applies to `pyproject.toml` verbatim, and `_description.org` and
 `README.rst` should be treated as build artefacts (not source).
 
+## `setup.py` runs only through `pypiProc.sh`: the two files are not tracked
+
+`setup.py` is never run on its own. Every build path of `seedPypiProc.sh`
+(bisos/bsip4) runs `fullPrep` first: `fullPrepBuild`, `pkgReInstall` (the
+PRIMARY dev install: uninstall, `fullPrepBuild forLocal`, install), the
+`fullPrepBuildUpload*` releases. `fullPrep` recreates `_description.org` from
+`../README.org` and `README.rst` from it by pandoc; `distClean` deletes them.
+
+So `py3/README.rst` and `py3/_description.org`, like `py3/*.egg-info/` and
+`py3/dist/`, are build output and are not tracked (the gitGroup plant's
+`generated` rule; `.gitignore` already ignores them).
+
+- Do NOT argue that `setup.py`'s `data_files` or `longDescription()` need them
+  in a fresh clone: the clone is built through `pypiProc.sh`, which makes them
+  first. (A wrong objection raised 2026-11-25.)
+- To untrack: `git rm -r --cached py3/README.rst py3/_description.org
+  py3/<pkg>.egg-info py3/dist` (the files stay on disk).
+- An install that bypasses `pypiProc.sh` (a bare `pip install -e .` from a
+  fresh clone, `pkgInstall edit` alone) is the thing to fix, not the tracking.
+
 ## setup.py structure — for reference only, not for editing
 
 `py3/setup.py` consists entirely of `####+BEGIN: b:py3:pypi:setup/<name>`
