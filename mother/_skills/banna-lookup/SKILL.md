@@ -33,12 +33,12 @@ library — no banna API needed:
 ```python
 import socket
 
-ip = socket.gethostbyname('airflow.here')  # → '127.0.22.100'
+ip = socket.gethostbyname('airflow.internal')  # → '127.0.22.100'
 ```
 
 `/etc/hosts` entries for BISOS services follow the convention:
 ```
-127.0.22.100  airflow.here  # port=24006
+127.0.22.100  airflow.internal  # port=24006
 ```
 
 The `# port=NNN` comment is informational; the authoritative port is in banna.
@@ -49,7 +49,7 @@ The `# port=NNN` comment is informational; the authoritative port is in banna.
 import socket
 from bisos.banna import tcpPorts as bannaTcpPorts
 
-_serverName = "airflow.here"
+_serverName = "airflow.internal"
 _proxyPort = bannaTcpPorts.tcpPortsAssignedList.tcpPortsList['airflow'].portNu
 _proxyIp = socket.gethostbyname(_serverName)
 ```

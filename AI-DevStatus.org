@@ -23,6 +23,9 @@ This file is maintained by Claude. Updates are typically triggered by the
 =/bx-status-update= slash command, after major interactions, or before a release.
 
 * Current State
+- 2026-11-26 (from a bisos-pip/b session): every =<name>.here= in this repo is now =<name>.internal=
+  (=.here= is an https-only gTLD in Chrome; bisos-pip/banna AI-WorkPlan.org Stage 4, banna's
+  =tcpPorts.hereFqdn=). Text renamed, not tested here; AI-WorkPlan.org keeps =.here= as history.
 
 As of 2026-10-20: this repo is *BISOS-Digital-Ecosystem-Skills*, one of the two inputs of an assembled
 templates base (the engine =bisos-pip/aiActivity=, WorkPlan Stage 18). The other input is

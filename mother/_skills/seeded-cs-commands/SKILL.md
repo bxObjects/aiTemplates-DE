@@ -27,7 +27,7 @@ The `.pcs` sets individual fields on it before declaring `csCmndsList`:
 
 ```python
 cntrlInfo.dnsSpecMethod = capDns_seedInfo.DnsSpecMethod.etcHosts
-cntrlInfo.fqdn = "airflow.here"
+cntrlInfo.fqdn = "airflow.internal"
 ```
 
 Use this when each invocation targets a single entity described by a small
@@ -295,7 +295,7 @@ from bisos.capDns import capDns_seedInfo
 cntrlInfo = capDns_seedInfo.cmndsControlInfo
 
 cntrlInfo.dnsSpecMethod = capDns_seedInfo.DnsSpecMethod.etcHosts
-cntrlInfo.fqdn = "airflow.here"
+cntrlInfo.fqdn = "airflow.internal"
 
 # 3. Declare the command list
 from bisos.csSeed import csCmndsList_seedInfo

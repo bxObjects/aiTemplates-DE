@@ -90,7 +90,7 @@ For IP addresses that are registered in `/etc/hosts`, resolve at module level:
 
 ```python
 import socket
-_ip = socket.gethostbyname('myservice.here')
+_ip = socket.gethostbyname('myservice.internal')
 ```
 
 See the `banna-lookup` skill for the full pattern.

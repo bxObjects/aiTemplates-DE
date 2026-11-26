@@ -1,12 +1,12 @@
 ---
 name: cbm-package-authorship
-description: Use when creating a new bisos-pip CBM package that runs a common open-source program as a BISOS capability (e.g. bisos.kafka, bisos.prometheus, bisos.grafana, bisos.pypiserver) — or adding a second program to one. Covers the decisions to settle first (install source, usage side, login, integrations), the banna registrations (ports, .here IP, uid/gid), pinning and verifying upstream releases, scaffolding the repo from a model package (tools/cbmPkgScaffold.sh), the files to write and their contracts (<name>Info.py as the single source of facts, Python programs in the shared /bisos/venv/py3/asc venv or an /bisos/venv/py3/isolated/<program> exception, the server/usage/bundle sbom trio, units, dns, vhost, assemble, CBS, CBM pointer, <name>Admin.cs with driftCheck, quick<Name>.cs, verify.sh, README), generating the .cs files (tools/makeCs.py), installing, verifying read-only, materializing, and the pitfalls already found. Load `cbm-authorship` for the CBM leaf itself and the sbom-split rules, `sysd-pcs-authorship` for unit details, `banna-lookup` for the registries.
+description: Use when creating a new bisos-pip CBM package that runs a common open-source program as a BISOS capability (e.g. bisos.kafka, bisos.prometheus, bisos.grafana, bisos.pypiserver) — or adding a second program to one. Covers the decisions to settle first (install source, usage side, login, integrations), the banna registrations (ports, .internal IP, uid/gid), pinning and verifying upstream releases, scaffolding the repo from a model package (tools/cbmPkgScaffold.sh), the files to write and their contracts (<name>Info.py as the single source of facts, Python programs in the shared /bisos/venv/py3/asc venv or an /bisos/venv/py3/isolated/<program> exception, the server/usage/bundle sbom trio, units, dns, vhost, assemble, CBS, CBM pointer, <name>Admin.cs with driftCheck, quick<Name>.cs, verify.sh, README), generating the .cs files (tools/makeCs.py), installing, verifying read-only, materializing, and the pitfalls already found. Load `cbm-authorship` for the CBM leaf itself and the sbom-split rules, `sysd-pcs-authorship` for unit details, `banna-lookup` for the registries.
 ---
 
 # Creating a pip CBM Package for an Open-Source Program
 
 A *CBM package* is a bisos-pip package that makes one open-source program a BISOS capability:
-installed from pinned sources, run by systemd as its own account, reachable as `<name>.here`
+installed from pinned sources, run by systemd as its own account, reachable as `<name>.internal`
 through nginx, materialized by one CBS that a CBM leaf points at. Four packages follow the
 pattern exactly and are the models:
 
@@ -32,7 +32,7 @@ The leaf-level CBM rules (pointer, gate, `cbm_*` verbs) and the sbom-split rules
 `cbm-authorship`. This skill is the package around them.
 
 Where these packages sit --- Raw-BISOS as the base platform, generic CBM packages as the base
-layer, `.here` for out-of-the-box use and regression (`sysCbmManage.cs -i fullyMaterialize`),
+layer, `.internal` for out-of-the-box use and regression (`sysCbmManage.cs -i fullyMaterialize`),
 niching and CapabilityBPOs later, dedicated-VM CBMs --- and the catalog of existing CBMs (gates,
 footprints, minimal settings) are in
 `/bisos/git/bxRepos/bxGenesis/start/rawBisosCBMs/README.org`.
@@ -126,7 +126,7 @@ functions. Everything else imports it; nothing else holds a fact.
 - Paths: `installBase=/opt/<name>`, `distDir`, `homeLink=/opt/<name>/current` (units and CLIs go
   through the link, never the versioned dir), `confDir=/etc/<name>`, `dataDir=/var/lib/<name>[/data]`,
   `envFile=/etc/default/<name>` (one per unit).
-- `listenIp="127.0.0.1"`, ports via `_bannaPortNu(...)` (never literals), `fqdn="<name>.here"`,
+- `listenIp="127.0.0.1"`, ports via `_bannaPortNu(...)` (never literals), `fqdn="<name>.internal"`,
   `baseUrl`, `localUrl`, and the login if any.
 - `tarballSetupScript(url, sha256, dirName, link, base, hasTopDir=True)`: bash that picks the
   checksum by `dpkg --print-architecture`, downloads to a temp dir, verifies, unpacks root-owned
@@ -192,11 +192,11 @@ functions. Everything else imports it; nothing else holds a fact.
 - **WSGI and ASGI need a server process.** A Python web app is called by a server: WSGI apps
   (bottle, Flask; pypiserver) by waitress or gunicorn, ASGI apps (Starlette, FastAPI; pypi-browser)
   by uvicorn. That server is the unit's `ExecStart`, on loopback; nginx stays the reverse proxy in
-  front, as for every `.here`. Check that the program really uses the server you install
+  front, as for every `.internal`. Check that the program really uses the server you install
   (pypiserver's `--server` rejects `waitress` by name; its `auto` picks it --- confirm by thread
   count or the `Server:` header).
 - **pip and plain HTTP.** pip ignores an index on plain HTTP other than localhost unless named with
-  `--trusted-host` ("not a trusted or secure host and is being ignored"). Every `.here` is HTTP: put
+  `--trusted-host` ("not a trusted or secure host and is being ignored"). Every `.internal` is HTTP: put
   the arguments in `<name>Info` (`pipIndexArgs`) and use them everywhere.
 
 ## 7a2. Initial data, zips, and components that cannot bind loopback
@@ -247,13 +247,13 @@ index `Filename` (`pool/main/...`) is a 404; the working path carries the codena
 
 ## 8. The vhost
 
-Always `proxy_pass http://<listenIp>:<port>` (loopback), not the `.here` address. Add what the
+Always `proxy_pass http://<listenIp>:<port>` (loopback), not the `.internal` address. Add what the
 program needs: Server-Sent Events → `proxy_buffering off` (Kafbat); WebSocket → a location with
 `Upgrade`/`Connection "upgrade"` (Grafana Live at `/api/live/`); uploads → `client_max_body_size`
 (nginx's 1m default refuses them). Set the program's external URL (`--web.external-url`,
 `root_url`) to `http://<name>.here/` so its links are right.
 
-**Two programs on one fqdn** (pypiserver.here: the index and its browser): route by path, and when
+**Two programs on one fqdn** (pypiserver.internal: the index and its browser): route by path, and when
 one path belongs to both (`/` is pypiserver's upload `POST` and pypi-browser's home page `GET`), by
 request method with a `map` at the top of the vhost file (it is included in nginx's http context)
 --- not with `if`. Give the map variable a name carrying the fqdn's (`$pypiserverHereRoot`): map

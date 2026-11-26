@@ -4,13 +4,13 @@ from csParts import cmndHead, EXAMPLES_HEAD, desc, DRIFT_HELPERS
 
 SUMMARY = """\
 * ~[Summary]~ :: A =CmndSvc= for admin-facing information about this host's
-  =pypiserver.here= package index + pypi-browser installation: listeners, login, service
+  =pypiserver.internal= package index + pypi-browser installation: listeners, login, service
   status, paths, using the index, and config drift."""
 
 DESCRIPTION = """\
 * [[elisp:(org-cycle)][| ~Description~ |]] :: [[file:/bisos/git/auth/bxRepos/blee-binders/bisos-core/PyFwrk/bisos-pip/bisos.cs/_nodeBase_/fullUsagePanel-en.org][BISOS CmndSvcs Panel]]   [[elisp:(org-cycle)][| ]]
 
-This is an admin-facing =CmndSvc= for this host's =pypiserver.here= installation --- pypiserver,
+This is an admin-facing =CmndSvc= for this host's =pypiserver.internal= installation --- pypiserver,
 the package index, and pypi-browser, its web UI: the listeners, the upload login and where things
 live, links for operating the =pypiserver-sysd.pcs= and =pypi-browser-sysd.pcs= units, pip and twine
 against the index, and a read-only =driftCheck= of the live config files, the units and the pinned
@@ -108,7 +108,7 @@ BODY = EXAMPLES_HEAD + f'''
         literal("pypi-browser-sysd.pcs -i examples")
         literal("systemctl status pypi-browser.service")
 
-        cs.examples.menuSection('/pypiserver.here -- dns and nginx vhost/')
+        cs.examples.menuSection('/pypiserver.internal -- dns and nginx vhost/')
         literal("pypiserver-here-dns.pcs -i dnsCap_verify")
         literal("pypiserver-wvd.pcs -i webVd_verify")
         literal("pypiserver-assemble.cs -i fullUpdate   # both of the above, updated")

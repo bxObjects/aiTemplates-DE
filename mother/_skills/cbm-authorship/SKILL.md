@@ -27,7 +27,7 @@ the primary mistake to avoid. Two CBSs for one capability is one too many.
 vhost, CBS, admin CS, docs) for an open-source program is the `cbm-package-authorship`
 skill; this one covers the CBM leaf and the sbom split it relies on.
 
-The layering (raw platform, generic packages as the base, `.here` regression runs, niching and
+The layering (raw platform, generic packages as the base, `.internal` regression runs, niching and
 CapabilityBPOs later) and the catalog of planted and planned leaves with their gates are in
 `/bisos/git/bxRepos/bxGenesis/start/rawBisosCBMs/README.org`.
 When you plant a leaf or change its gate, update that README's tables and the hereWeb
@@ -342,7 +342,7 @@ Steps (in order):
 2. **Choose realm + capabilityType** for the CBM leaf:
    `sys/cbm/<realm>/<capabilityType>/<capabilityName>/`. Realms today:
    `platform`, `site`, `pals`, `user`, `collective`. Capability types today:
-   `hereWeb` (HTTP via `.here`), `hereMail` (mail via `.here`), `rpyc` (PyCS
+   `hereWeb` (HTTP via `.internal`), `hereMail` (mail via `.internal`), `rpyc` (PyCS
    performer), `induct` (non-service install).
 3. **Write the leaf's `cbmProc.spcs`** — the ~10-line pointer. Set
    `capabilityName` and `cbsSpec`. `chmod +x` it.

@@ -152,7 +152,7 @@ See
 
 @/etc/hosts
 
-As a wvds, consider airflow in the context of airflow.here of /etc/hosts as an example:
+As a wvds, consider airflow in the context of airflow.internal of /etc/hosts as an example:
 
 @/bisos/asc/web/bin/airflow-sbom.pcs                 :: Installs airflow and its dependencies
 @/bisos/asc/web/bin/airflow-webserver-sysd.pcs       :: Creates systemd entry/ies for airflow

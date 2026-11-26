@@ -2,7 +2,7 @@
 
 This file provides always-loaded orientation for Claude Code when working on a BISOS static site: pages
 from a content tree on the file system, built by Astro into static HTML that nginx serves as
-=http://<name>.here=, packaged as a BISOS capability (CBS/CBM). Creating such a site step by step is the
+=http://<name>.internal=, packaged as a BISOS capability (CBS/CBM). Creating such a site step by step is the
 =astro-site-authorship= skill. See "Available Skills" below.
 
 * Table of Contents     :TOC:
@@ -27,12 +27,12 @@ same LaTeX source (LCNT) gives the web page, its PDF and its Reveal slides. Righ
 
 | Site                  | Where                                          | What it shows             |
 |-----------------------+------------------------------------------------+---------------------------|
-| astroStarter.here     | =bisos-web/astro-starter-bystar= (the starter) | its tree, the model       |
-| platform.here         | =/bisos/platform/web/astro= (in bro_rawBisos)  | layers, capabilities      |
-| csPlayerUi.here       | =bisos-web/csPlayer-webUi= (repo name differs) | a React island, link tabs |
-| libre-halaal.org.here | =bro_rawBisosPals=, =bySmb/.../web/astro=      | the first PALS site       |
+| astroStarter.internal     | =bisos-web/astro-starter-bystar= (the starter) | its tree, the model       |
+| platform.internal         | =/bisos/platform/web/astro= (in bro_rawBisos)  | layers, capabilities      |
+| csPlayerUi.internal       | =bisos-web/csPlayer-webUi= (repo name differs) | a React island, link tabs |
+| libre-halaal.org.internal | =bro_rawBisosPals=, =bySmb/.../web/astro=      | the first PALS site       |
 
-*Start from =astro-starter-bystar=* (copy it); platform.here is the example of data-driven pages. A
+*Start from =astro-starter-bystar=* (copy it); platform.internal is the example of data-driven pages. A
 site's name and its repo's name may differ: the fqdn is in =astroProc.spcs= (and, for a PALS, in
 =uri/here/value=), not in the path.
 
@@ -154,20 +154,20 @@ skill; the rest of this section describes the banna kind.
   =webVirtDom= run the planted files beside it; =fullUpdate= runs all three.
 - *Vhost*: static, =root <stable>/site/dist=, =error_page 404 /404.html= (=webVd_nginxSites.atBaseSite=
   has no error_page).
-- *banna*: =<name>= (a registry slot plus the =.here= =hereIp=) and =<name>_dev= (=astro dev= /
+- *banna*: =<name>= (a registry slot plus the =.internal= =hereIp=) and =<name>_dev= (=astro dev= /
   =preview=), the 24xxx / 25xxx pairs.
 - *Leaf*: =sys/cbm/<realm>/hereWeb/<name>/=, in =branchesOrdered= after =nginx= and =reactPlus= and after
-  anything the site reports on (platform.here is last).
+  anything the site reports on (platform.internal is last).
 - *Stable paths*: =/bisos/platform/web/...= for a site in bro_rawBisos, =/bisos/git/bxRepos/...= for a
   repo.
 
 * Content From Scripts, Built as a Snapshot
 
 A site that shows facts (capabilities, layers) does not hard-code them: an executable in =content/bin/=
-writes =content/data/<x>.json=; pages in =site/src/pages/= read it at build time (platform.here's
+writes =content/data/<x>.json=; pages in =site/src/pages/= read it at build time (platform.internal's
 =site/src/lib/content.mjs= refuses to build without it, naming the script) and =getStaticPaths()= makes
 one page per item. Fixed pages win over the tree's catch-all page. The site shows what was true at its
-last build and says when; live checks from the browser were set aside (each =.here= name is another
+last build and says when; live checks from the browser were set aside (each =.internal= name is another
 origin).
 
 * Conventions

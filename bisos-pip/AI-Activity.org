@@ -115,7 +115,7 @@ Every CBM leaf lives at:
   =pals=, =user=, =collective=.
 - *capabilityType* --- /how/ the capability is delivered. Service vs.
   no-service; local vs. remote; HTTP vs. mail vs. RPyC. Current types:
-  =hereWeb= (HTTP via =.here= domain), =hereMail= (mail via =.here=),
+  =hereWeb= (HTTP via =.internal= domain), =hereMail= (mail via =.internal=),
   =rpyc= (PyCS RPyC performer), =induct= (non-service software
   induction, e.g. LCNT).
 - *capabilityName* --- the specific capability (=airflow=, =nextcloud=,
@@ -145,7 +145,7 @@ it.* See the =cbm-authorship= skill for the full pattern.
 
 Raw-BISOS (=raw-bisos.sh=) is a basic platform and ends there. Generic CBM pip packages
 (=bisos.<name>=) are a base layer on top of it: each brings its capability up minimally, out of
-the box, as =<name>.here=, and the enabled leaves planted in =bro_rawBisos= form the
+the box, as =<name>.internal=, and the enabled leaves planted in =bro_rawBisos= form the
 rawBisosCbm set that =sysCbmManage.cs -i fullyMaterialize= (=bisos.capability=) brings up as a
 regression run. Real servers --- scale, site settings, security --- come later, through niching
 and CapabilityBPOs; some CBMs (GitLab, Kafka, Airflow, devpi) typically run for real in

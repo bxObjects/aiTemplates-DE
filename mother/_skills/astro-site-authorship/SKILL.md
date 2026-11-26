@@ -1,6 +1,6 @@
 ---
 name: astro-site-authorship
-description: Use when creating a new BISOS static site with Astro, or migrating one — from the astro-starter-bystar starter, a ByStar Plone 3 site's ContentTree, or an older Gatsby site — into the common structure (`astroProc.spcs`, `cbm/` with `<name>-cbs.pcs` / `-assemble.cs` / `-wvd.pcs` / `-here-dns.pcs`, `content/tree/`, `content/bin/`, `site/`), served by nginx as `http://<name>.here` with a CBM leaf. Also when adding pages to such a site — content tree nodes (folder, page, pageLcnt built from LaTeX by HeVeA, files, nodesOrdered, contentLang for RTL) or data-driven pages from `content/bin/` scripts writing `content/data/*.json` — or when a `.here` Astro site answers 404, shows stale content, or a right-to-left page does not mirror. Covers banna registrations, copying the starter, astroProc.spcs, the capability files, the leaf and walk order, build and verification, and pitfalls. A PALS site (`uri/here/value`, `cbm/pals-*` symlinks, a `127.0.55.x` name) takes its pages from here but its naming, serving and planting from bx-pals-web-site. Not for a CBM package that runs a program (that is cbm-package-authorship).
+description: Use when creating a new BISOS static site with Astro, or migrating one — from the astro-starter-bystar starter, a ByStar Plone 3 site's ContentTree, or an older Gatsby site — into the common structure (`astroProc.spcs`, `cbm/` with `<name>-cbs.pcs` / `-assemble.cs` / `-wvd.pcs` / `-here-dns.pcs`, `content/tree/`, `content/bin/`, `site/`), served by nginx as `http://<name>.internal` with a CBM leaf. Also when adding pages to such a site — content tree nodes (folder, page, pageLcnt built from LaTeX by HeVeA, files, nodesOrdered, contentLang for RTL) or data-driven pages from `content/bin/` scripts writing `content/data/*.json` — or when a `.internal` Astro site answers 404, shows stale content, or a right-to-left page does not mirror. Covers banna registrations, copying the starter, astroProc.spcs, the capability files, the leaf and walk order, build and verification, and pitfalls. A PALS site (`uri/here/value`, `cbm/pals-*` symlinks, a `127.0.55.x` name) takes its pages from here but its naming, serving and planting from bx-pals-web-site. Not for a CBM package that runs a program (that is cbm-package-authorship).
 ---
 
 # Creating a BISOS Static Site (Astro, Content Tree)
@@ -24,7 +24,7 @@ sys/cbm/<realm>/hereWeb/<name>/cbmProc.spcs ──points at──> <siteBase>/cb
 
 Orientation (the model, conventions, why a snapshot) is in the `astro-site` activity's
 `AI-Activity.org`. The starter is `<starter>` = `/bisos/git/bxRepos/bisos-web/astro-starter-bystar`;
-the example of data-driven pages is platform.here, `/bisos/platform/web/astro`.
+the example of data-driven pages is platform.internal, `/bisos/platform/web/astro`.
 
 ## 0. Settle With the User First
 
@@ -33,7 +33,7 @@ the example of data-driven pages is platform.here, `/bisos/platform/web/astro`.
   `astroProc.spcs`, serving and planting — **skip steps 1, 2's `cbm/` and `astroProc.spcs` bullets, and
   5 here**; steps 2's copy, 3, 4 and 4a apply as they are. Platform services are banna; a site someone
   owns (a foundation, a project) is a PALS. Ask when unsure.
-- The name, so the fqdn (`<name>.here`), and where the site lives: its own repo (`initiate
+- The name, so the fqdn (`<name>.internal`), and where the site lives: its own repo (`initiate
   --activity=astro-site`) or a directory of a BXO (`initiateSub --activity=astro-site`).
 - Where its pages come from: a new tree, a Plone 3 `ContentTree/` (which site), or data scripts.
 - Its languages; whether some subtrees are right-to-left (`contentLang`).
@@ -55,9 +55,9 @@ cd <siteBase> && rm -rf site/node_modules site/dist site/.astro site/public   # 
 ```
 
 Then, in `<siteBase>`:
-- `astroProc.spcs`: `fqdn = "<name>.here"`, `bannaPortNu("<name>_dev")`, the docstring. (A PALS: no
+- `astroProc.spcs`: `fqdn = "<name>.internal"`, `bannaPortNu("<name>_dev")`, the docstring. (A PALS: no
   banna, no `devPortNu` — `bx-pals-web-site` step 2.)
-- `cbm/`: rename `astroStarter-*` to `<name>-*`, and `astroStarter` / `astroStarter.here` / the path
+- `cbm/`: rename `astroStarter-*` to `<name>-*`, and `astroStarter` / `astroStarter.internal` / the path
   of the starter inside them; `cbm/<name>-wvd.pcs`'s `rootBaseDir` is the stable path of `site/dist`
   (`/bisos/platform/web/...` in bro_rawBisos, `/bisos/git/bxRepos/...` for a repo); `cbm/<name>-cbs.pcs`'s
   `assemble=` the stable path of `cbm/<name>-assemble.cs`; `cbm/<name>-here-dns.pcs`'s fqdn.
@@ -103,7 +103,7 @@ An executable in `content/bin/` (`#!/usr/bin/env python`, read-only) writes
 Pages in `site/src/pages/` read the JSON at build time and win over the tree's catch-all page:
 
 ```js
-// site/src/lib/content.mjs (as platform.here's)
+// site/src/lib/content.mjs (as platform.internal's)
 const file = path.resolve(process.cwd(), "../content/data/<x>.json")
 if (!fs.existsSync(file)) throw new Error(`${file} is missing: run content/bin/<x>.py first`)
 export const data = JSON.parse(fs.readFileSync(file, "utf8"))
@@ -120,8 +120,8 @@ const { item } = Astro.props
 ---
 ```
 
-Models: platform.here's `content/bin/platformCapabilities.py` (walks `sys/cbm`, joins banna, probes the
-`.here` URLs) and `platformLayers.py` (`facter --json` plus checks).
+Models: platform.internal's `content/bin/platformCapabilities.py` (walks `sys/cbm`, joins banna, probes the
+`.internal` URLs) and `platformLayers.py` (`facter --json` plus checks).
 
 ## 4a. A React Application as an Island (Optional)
 

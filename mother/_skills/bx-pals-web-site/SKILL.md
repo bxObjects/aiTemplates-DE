@@ -1,6 +1,6 @@
 ---
 name: bx-pals-web-site
-description: Use when a site is, or is to become, a BISOS PALS (Possession Assertable Libre Service) — a directory with `uri/here/value` and a `cbm/` of symlinks to bisos.pals's generic `pals-cbs.spcs` / `pals-assemble.cs` / `pals-here-dns.spcs` / `pals-wvd.spcs` — or when a `.here` name is on a `127.0.55.x` address, is in `/bisos/var/palsHere/uri.list` or the `palsHere` dblock of `/etc/hosts`, or is not in banna. Covers telling a PALS from a banna site, the site's files, serving it with `pals-assemble.cs -i fullUpdate`, verifying it, registering it with `palsOfSys.cs` so the CBM walk materializes it, and retiring a name. The Astro site itself (content tree, `site/`) is astro-site-authorship; a banna site is astro-site-authorship's banna steps.
+description: Use when a site is, or is to become, a BISOS PALS (Possession Assertable Libre Service) — a directory with `uri/here/value` and a `cbm/` of symlinks to bisos.pals's generic `pals-cbs.spcs` / `pals-assemble.cs` / `pals-here-dns.spcs` / `pals-wvd.spcs` — or when a `.internal` name is on a `127.0.55.x` address, is in `/bisos/var/palsHere/uri.list` or the `palsHere` dblock of `/etc/hosts`, or is not in banna. Covers telling a PALS from a banna site, the site's files, serving it with `pals-assemble.cs -i fullUpdate`, verifying it, registering it with `palsOfSys.cs` so the CBM walk materializes it, and retiring a name. The Astro site itself (content tree, `site/`) is astro-site-authorship; a banna site is astro-site-authorship's banna steps.
 ---
 
 # A PALS Site: Named, Served and Planted by bisos.pals
@@ -9,7 +9,7 @@ The shape, before any step:
 
 ```
 <palsSite>/                       any directory, in any repo (the PALS-BXO)
-   ├─ uri/here/value              the fqdn, e.g. libre-halaal.org.here — this file makes it a PALS
+   ├─ uri/here/value              the fqdn, e.g. libre-halaal.org.internal — this file makes it a PALS
    ├─ cbm/pals-cbs.spcs        ─┐
    ├─ cbm/pals-assemble.cs      │ symlinks to /bisos/git/bxRepos/bisos-pip/pals/py3/bin/<same>;
    ├─ cbm/pals-here-dns.spcs    │ each finds its PALS as the nearest directory above it with uri/here/value
@@ -25,8 +25,8 @@ The shape, before any step:
 ```
 
 The authority is the bisos.pals `README.org` (`/bisos/git/bxRepos/bisos-pip/pals/README.org`): read its
-"PALS on a Platform", "PALS .here Names" and "A PALS Site's cbm/" sections before changing anything here.
-The first PALS site is libre-halaal.org.here
+"PALS on a Platform", "PALS .internal Names" and "A PALS Site's cbm/" sections before changing anything here.
+The first PALS site is libre-halaal.org.internal
 (`bro_rawBisos/bro_rawBisosPals/bySmb/libreHalaalFoundation/web/astro`).
 
 ## 0. Is It a PALS? Settle With the User First
@@ -36,7 +36,7 @@ The first PALS site is libre-halaal.org.here
   the starter) are banna; a site someone owns (a foundation, a project) is a PALS. **Never add a PALS to
   banna** and never look its name up in `/etc/hosts`'s banna block.
 - **The fqdn.** It is `uri/here/value`, which may differ from the repo's or the directory's name (the
-  user may write it in another case; `.here` names are case-insensitive, keep the file's).
+  user may write it in another case; `.internal` names are case-insensitive, keep the file's).
 - **The PALS-BXO** that owns it, for registration (step 4): the repository the site lives in. Its
   `sys/cbm/` is written into that repository, so ask before declaring.
 
@@ -118,7 +118,7 @@ hand, and the PALS-BXO. `README.org` (`readme-authorship`).
   (fixed 2026-10-19 in `bisos.capability`'s `resolveCbsSpec`, `.absolute()` not `.resolve()`). A
   `cbmProc.status` saying `ok` is not proof: the PyCS main exits 0 when a Cmnd fails; check the site.
 - **`astroProc.spcs` asks banna for a port that does not exist**: it was copied from a banna site
-  (libre-halaal.org.here's still is). Remove the banna lookup (step 2).
+  (libre-halaal.org.internal's still is). Remove the banna lookup (step 2).
 - **`contentTreeValidate tree: not a directory`**: the path is relative to the site's directory
   (`content/tree`), not to `content/`.
 - **The name does not resolve**: `fullUpdate` not run, or the `palsHere` dblock missing from
